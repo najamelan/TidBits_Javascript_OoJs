@@ -1,0 +1,77 @@
+TODO: separate inheritance from setting our own methods to allow calling Public and Protected in any order.
+
+
+
+
+Access control:
+
+	What should be possible:
+
+		V (4 tests) Access public methods both on Sub and Super from outside
+		V (2 tests) Access public methods in Super from Sub
+		V (2 tests) Access inherited methods from outside
+		V (2 tests)	Access protected methods from sub
+		V (6 tests) Access public (inherited) data member
+		V (2 tests) Accessing protected DM from within Sub
+
+
+	What shouldn't be possible:
+
+		V ( 8 tests) Accessing private stuff from outside
+		V ( 4 tests) Accessing private stuff in Super from Sub
+		V ( 4 tests) Accessing protected methods from outside
+		V ( 4 tests) Accessing protected Data members
+		V (10 tests) Instance should not have Static methods and vice versa
+		V (10 tests) Assigning to public or protected datamembers
+
+
+
+Runtime scenarios:
+
+		V ( 1  test) calling public method from outside should be able to access data members
+		V (10 tests) changing data members should be consistend between Sub and Super and inherited methods
+		  - test a public getter on Super and inherited on Sub
+		  - test a public setter on Super and inherited on Sub
+		  - test a protected inherited setter on Sub
+		  - everything on static and on instance
+		V ( 2 tests) Changing public (or protected-> not tested)data members should be consistend between
+		             internal and external reference
+		- shouldn't be possible to declare something both public and protected
+		- use an object as namespace
+		- What if Protected or Public isn't run
+
+
+
+
+Inheritance:
+
+	Should be possible:
+
+		V (4 tests) Override inherited method
+		- (4 tests) Changing access level of inherited methods
+		- (1 test ) virtual: a superclass method which calls a subclass method
+		- multi level hierarchy
+
+
+
+
+
+
+Type checking:
+
+	V (2 tests) sub should be instance of both Super and Sub
+	V (2 tests) super should be instance of Super but not Sub
+	V (2 tests) Sub should be an instance of Super but not the other way round
+	V (4 tests) Object and new Object() should not be instances of Super and Sub
+	V (4 tests) Super, Sub, super, sub should be instances of Object
+	V (3 tests) should be able to test if something is an instance or a subclass instance
+	V (3 tests) should be able to test if Static is our own or from a subclass or not
+	V (4 tests) typeof Sub, Super and Static should be 'function'
+	V should check what happens if called without new (as we're using strict, this will be undefined)
+
+
+
+
+
+Virtual:
+--------
