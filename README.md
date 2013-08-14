@@ -3,14 +3,124 @@ TidBits Javascript OoJs
 
 This tidbit proposes a way to use a classical OOP paradigm in Javascript. It is part of the [TidBits Javascript Library](https://github.com/najamelan/TidBits_Javascript).
 
+This shows the basic syntax of what a class looks like in OoJs
 
+```js
+;( function class_Template( namespace )
+{
+	'use strict'; // recommended
+
+	if( namespace[ "Template" ] ) return    // protect against double inclusions
+
+	    namespace.Template = Template
+	var Static             = TidBits.OoJs.setupClass( namespace, "Template" )
+
+	// Data members, private by default
+	//
+	Static.privateStaticDM   = 0
+	Static.protectedStaticDM = 0
+	Static.publicStaticDM    = 0
+
+	Static.Private
+	(
+		  "privateStaticDM"     //< can do for consistency, but is the default
+		,  privateStaticMethod  //  accesslevel for data members
+	)
+
+	Static.Protected
+	(
+		  "protectedStaticDM"
+		,  protectedStaticMethod
+	)
+
+	Static.Public
+	(
+		  "publicStaticDM"
+		,  publicStaticMethod
+	)
+
+	// constructor
+	//
+	function Template( parameter )
+	{
+		// Data members
+		//
+		this.privateInstanceDM   = parameter
+		this.protectedInstanceDM = 0
+		this.publicInstanceDM    = 0
+
+		this.Private
+		(
+			  "privateInstanceDM"
+			,  init
+
+			,  this.Virtual
+			   (
+					virtualPrivateInstanceMethod
+			   )
+		)
+
+		this.Protected
+		(
+			  "protectedInstanceDM"
+			,  protectedInstanceMethod
+		)
+
+		var iFace = this.Public
+		(
+			  "publicInstanceDM"
+			,  publicInstanceMethod
+		)
+
+		this.init() // if you have to do something else
+
+		return iFace
+	}
+
+	// all your method declarations go here
+	//
+	function init(){}
+	function privateStaticMethod(){}
+
+})( window )
+```
+
+
+-  [Design goals](#design-goals)
+-  [Why would you want to use OOP](#why-would-you-want-to-use-oop)
+
+   -  [Abstraction](#abstraction)
+   -  [Loose coupling, tight cohesion](#loose-coupling-tight-cohesion)
+   -  [Flexibility vs Scalability and Maintainability](#flexibility-vs-scalability-and-maintainability)
+
+-  [How it works](#how-it-works)
+
+   -  [Features](#features)
+   -  [Limitations](#limitations)
+   -  [Requirements](#requirements)
+   -  [Installation](#installation)
+   -  [Verify your installation](#verify-your-installation)
+   -  [Usage](#usage)
+  
+      -  [Reserved keywords](#reserved-keywords)
+      -  [API](#api)
+      -  [Make sure your object is set up](#make-sure-your-object-is-set-up)
+      -  [Do not use logic before your object is set up](#do-not-use-logic-before-your-object-is-set-up)
+      -  [Declare data members and call Super before Public/Private/Protected](#declare-data-members-and-call-super-before-publicprivateprotected)
+      -  [Do not call virtual methods from your constructor](#do-not-call-virtual-methods-from-your-constructor)
+      -  [Sealing your object is nice, but dangerous](#sealing-your-object-is-nice-but-dangerous)
+      -  [Do not try to deep copy objects or extend them](#do-not-try-to-deep-copy-objects-or-extend-them)
+  
+  -  [Seeing it in action](#seeing-it-in-action)
+ 
+  
 ## Design goals
 
 The goals of OoJs were set as follows (until ES provides decent class support):
-1. provide the featureset of C++ OOP in JavaScript
-2. provide a neat and clean syntax to the end user
-3. require a minimal amount of sugar code
-4. only use standard ES5
+1.  provide the featureset of C++ OOP in JavaScript
+2.  provide a neat and clean syntax to the end user
+3.  require a minimal amount of sugar code
+4.  only use standard ES5
 
 It must be said that the current alpha release only partially meets these goals. N°s 2 and 4 are met as far as I'm concerned.
 
@@ -20,7 +130,6 @@ As far as the amount of sugar code is concerned, only about 1 line of sugar code
 
 **If you want to skip the lesson about OOP software design, skip down to "How it works".** -> Not recommended if you have only ever done programming in JavaScript.
 
-[toc]
 
 ## Why would you want to use OOP
 OOP is the best programming paradigm currently known to wo.mankind. The essence of OOP is **NOT**: turn your nouns into objects and your verbs into methods. That is object based programming, which is the model for custom types in Javascript.
@@ -62,35 +171,35 @@ Until that time, JavaScript is not ready for application and library design, and
 This section explains the design choices of and functioning of OoJs. In brief this is are the characteristics:
 
 ### Features
-- neat syntax similar to other OOP languages (public: becomes this.Public())
-- declaration up front, definitions below
-- public, private, protected methods and data members
-- non-pure virtual methods
-- correct prototype chain (instanceof works)
-- supports namespaces. You can make classes without poluting the global scope at all (well except for your namespace of course)
-- all methods and members of your class can internally be called in the form of `this.myMethod` or `this.myData`
-- only one copy of every method, regardless how many objects you have
-- fully unit tested, to garantee it works
+-  neat syntax similar to other OOP languages (public: becomes this.Public())
+-  declaration up front, definitions below
+-  public, private, protected methods and data members
+-  non-pure virtual methods
+-  correct prototype chain (instanceof works)
+-  supports namespaces. You can make classes without poluting the global scope at all (well except for your namespace of course)
+-  all methods and members of your class can internally be called in the form of `this.myMethod` or `this.myData`
+-  only one copy of every method, regardless how many objects you have
+-  fully unit tested, to garantee it works
 
 
 ### Limitations
-- you will have to include a class with sugar code (about 7KB) in order to make the magic work
-- I haven't done performance testing to compare to other models, but it sure isn't the kind of framework to generate thousands of objects, rather use it to create good application design
-- it's not cryptic, but you'll best still include a link to this readme for people reading your code to understand how it works
-- no friend classes
-- no multiple inheritance (for the moment)
-- no possibility to set a standard access level when inheriting from a class (where C++ allows you to do "class A : protected B"), however you can override the access level on an indivitual basis for your class members.
-- one of the features are currently incomplete. They are related to a property .Base which will be available on your private object of a Derived class and which will allow you to call Base versions of methods. The current implementation only provides .Base for your direct parent, and not for ancestors higher up the chain.
-- there is currently no clone utility function provided with OoJs. The problem being I haven't found a simple way to determine which properties should be deep copied and which not. What if someone writes (and they can, so they will): this.myWindow = window. Deep copying a data member like that would be a royal disaster... You will have to provide a copy constructor dealing with the right properties if you want this
-- I haven't tested whether it works well to inherit from non-OoJs bases. Say you could subclass "Function" to generate functions, but I haven't tested fancy stuff like that. (Your objects inherit the prototype of your base, so with most stuff it should be fine)
-- classes that inherit from one another have to live in the same namespace
+-  you will have to include a class with sugar code (about 7KB) in order to make the magic work
+-  I haven't done performance testing to compare to other models, but it sure isn't the kind of framework to generate thousands of objects, rather use it to create good application design
+-  it's not cryptic, but you'll best still include a link to this readme for people reading your code to understand how it works
+-  no friend classes
+-  no multiple inheritance (for the moment)
+-  no possibility to set a standard access level when inheriting from a class (where C++ allows you to do "class A : protected B"), however you can override the access level on an indivitual basis for your class members.
+-  one of the features are currently incomplete. They are related to a property .Base which will be available on your private object of a Derived class and which will allow you to call Base versions of methods. The current implementation only provides .Base for your direct parent, and not for ancestors higher up the chain.
+-  there is currently no clone utility function provided with OoJs. The problem being I haven't found a simple way to determine which properties should be deep copied and which not. What if someone writes (and they can, so they will): this.myWindow = window. Deep copying a data member like that would be a royal disaster... You will have to provide a copy constructor dealing with the right properties if you want this
+-  I haven't tested whether it works well to inherit from non-OoJs bases. Say you could subclass "Function" to generate functions, but I haven't tested fancy stuff like that. (Your objects inherit the prototype of your base, so with most stuff it should be fine)
+-  classes that inherit from one another have to live in the same namespace
 
 If you are using OoJs and there's stuff you can't do due to the limitations, please file an issue here at github and/or start a bounty at [bountysource](https://bountysource.com) and I'll do my best to make time for it.
 
 
 ### Requirements
 
-- nothing, unless you want to run the unit tests, in which case: [TidBits JavaScript UnitTesting](https://github.com/najamelan/TidBits_Javascript_UnitTesting)
+-  nothing, unless you want to run the unit tests, in which case: [TidBits JavaScript UnitTesting](https://github.com/najamelan/TidBits_Javascript_UnitTesting)
 
 
 ### Installation
@@ -99,13 +208,13 @@ The easiest way to include this in your project is by adding either TidBits Java
 
 So, either:
 
-```shell
+```bash
 git submodule add git@github.com:najamelan/TidBits_Javascript.git includes/tidbitsJavaScript
 ```
 
 or:
 
-```shell
+```bash
 mkdir includes
 git submodule add git@github.com:najamelan/TidBits_Javascript_UnitTesting.git includes/OoJs
 git submodule add git@github.com:najamelan/TidBits_Javascript_UnitTesting.git includes/UnitTesting
@@ -115,7 +224,7 @@ git submodule add git@github.com:najamelan/TidBits_Javascript_UnitTesting.git in
 
 If you are using Nodejs, run the unit tests:
 
-```shell
+```bash
 cd includes/OoJs
 node tests/testOoJs.js
 ```
@@ -132,31 +241,31 @@ Have a look at [the sample code below](#seeing-it-in-action). Once you get the h
 #### Reserved keywords
 
 OoJs adds certain properties to your object. They will be non-enumerable, but you shouldn't overwrite/delete them regardless.
-- `ooID` (you can use this if you want, read only, to uniquely identify your objects) It is unique for all OoJs objects, not only those in the same class.
-- `Super`, `Virtual`, `Private`, `Protected`, `Public`
-- OoJs creates a property with the name of your baseclass on your private object, so you can call baseclass versions of methods, so don't create a property with the name of a class you inherit from.
-- `Static.getPrivateInstance` is a property provided by OoJs. It is safe to create a property with that name on an instance, but not on static level.
+-  `ooID` (you can use this if you want, read only, to uniquely identify your objects) It is unique for all OoJs objects, not only those in the same class.
+-  `Super`, `Virtual`, `Private`, `Protected`, `Public`
+-  OoJs creates a property with the name of your baseclass on your private object, so you can call baseclass versions of methods, so don't create a property with the name of a class you inherit from.
+-  `Static.getPrivateInstance` is a property provided by OoJs. It is safe to create a property with that name on an instance, but not on static level.
 
 #### API
 
 OoJs provides the following functions:
 
-- **OoJs.setupClass**: need to call this for every class  
+-  **OoJs.setupClass**: need to call this for every class  
   **returns** `Static`  
   **parameters**: `namespace, classname [, baseclassname]`
 
-- **OoJs.typeOf**: find out the type of an OoJs object (eg. will not return 'object', will return your classname)  
+-  **OoJs.typeOf**: find out the type of an OoJs object (eg. will not return 'object', will return your classname)  
   **returns** `string` classname  
   **parameters**: an object created by a class setup with OoJs
   
 
-- On your Static, there is a method **getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class, use this. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
+-  On your Static, there is a method **getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class, use this. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
   
-- On your private object, if class Circle inherits from Shape, in Circle, **this.Shape** will be an interface to the Shape parent of your circle, which you can use to call Shape versions of public and protected methods. Currently only available for the direct parent. I should implement that for all ancestors...
+-  On your private object, if class Circle inherits from Shape, in Circle, **this.Shape** will be an interface to the Shape parent of your circle, which you can use to call Shape versions of public and protected methods. Currently only available for the direct parent. I should implement that for all ancestors...
 
-- On both your interface and private object, a property **ooID** will exist. This is a unique identifier for this object. The interface will have the same ooID as the private object, should you ever need to verify their connection.
+-  On both your interface and private object, a property **ooID** will exist. This is a unique identifier for this object. The interface will have the same ooID as the private object, should you ever need to verify their connection.
 
-- **this.Super( parameters )** allows you to send parameters to your parent class constructor. You should call this before calling Public/Private/Protected.
+-  **this.Super( parameters )** allows you to send parameters to your parent class constructor. You should call this before calling Public/Private/Protected.
 
 
 #### Make sure your object is set up

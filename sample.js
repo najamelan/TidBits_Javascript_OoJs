@@ -1,3 +1,92 @@
+// minimal template
+// you can copy this to start new classes
+//
+;( function class_Template( namespace )
+{
+	'use strict';
+
+	if( namespace[ "Template" ] ) return    // protect against double inclusions
+
+	    namespace.Template = Template
+	var Static             = TidBits.OoJs.setupClass( namespace, "Template" )
+
+	// Data members, private by default
+	//
+	Static.privateStaticDM   = 0
+	Static.protectedStaticDM = 0
+	Static.publicStaticDM    = 0
+
+	Static.Private
+	(
+		  "privateStaticDM"     //< can do for consistency, but is the default
+		,  privateStaticMethod  //  accesslevel for data members
+	)
+
+	Static.Protected
+	(
+		  "protectedStaticDM"
+		,  protectedStaticMethod
+	)
+
+	Static.Public
+	(
+		  "publicStaticDM"
+		,  publicStaticMethod
+	)
+
+
+
+	// constructor
+	//
+	function Template( parameter )
+	{
+		// Data members
+		//
+		this.privateInstanceDM   = parameter
+		this.protectedInstanceDM = 0
+		this.publicInstanceDM    = 0
+
+		this.Private
+		(
+			  "privateInstanceDM"
+			,  init
+
+			,  this.Virtual
+			   (
+					virtualPrivateInstanceMethod
+			   )
+		)
+
+		this.Protected
+		(
+			  "protectedInstanceDM"
+			,  protectedInstanceMethod
+		)
+
+		var iFace = this.Public
+		(
+			  "publicInstanceDM"
+			,  publicInstanceMethod
+		)
+
+		this.init() // if you have to do something else
+
+		return iFace
+	}
+
+	// all your method declarations go here
+	//
+	function init(){}
+	function privateStaticMethod(){}
+
+})( window )
+
+
+
+
+
+// full example
+//
 var TidBits = TidBits || {}     // This is how I create my namespace
 
 // nodejs support
