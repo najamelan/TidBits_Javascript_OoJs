@@ -1,483 +1,812 @@
-// Allow browser and nodejs
-//
-var OoJsNamespace = 'undefined' === typeof global ? window : global
+/**@preserve TidBits OoJs - version: 13.08.14 (alpha)
+ * README: https://github.com/najamelan/TidBits_Javascript_OoJs
+ */
+
+var TidBits = TidBits || {} // our namespace
 
 
-/// Class OoJs
-//
-;(function( namespace )
+;(function class_OoJs( namespace )
 {
-	'use strict';
+'use strict';
 
-	namespace[ "OoJs" ] = OoJs
-	var classes         = {}
+if( namespace[ "OoJs" ] ) return
 
-	function Properties(){ this.own = { _public: {}, _protected: {}, _virtual: {}, _virtualize: null } }
-	Properties.prototype.inherit = null
+namespace[ "OoJs" ] = OoJs
 
-	function Meta( sub, base, Static, IFace )
+// Static.ooID = classMeta
+//
+var classes  = {}
+
+// this.ooID = { classID, State = { membername : value } }
+//
+var instances= {}
+
+// map class names to id, makes life a bit easier as it allows to store the base classes as strings
+// which means some class can inherit from a non OoJS class
+//
+var classIDs = {}
+
+
+function ClassMeta( namespace, Static, name, id, iface )
+{
+	this.Static         = Static
+	this.IFace          = iface
+	this.Class          = namespace[ name ]
+	this.name           = name
+	this.id             = id
+	this.bases          = []
+	this.staticLayout   = null
+	this.instanceLayout = null
+	this.layoutInstance = null
+	this.inherited      = { staticLayout: false, instanceLayout: false }
+	this.virtuals       = {}
+	this.namespace      = namespace
+}
+
+
+function IntancesRecord( _this, classID, iFace )
+{
+	this._this   = _this
+	this.classID = classID
+	this.iFace   = iFace
+	this.state   = {}
+	this.supers  = []
+	this.flags   = 0
+}
+
+
+/** @enum {number}
+ **/
+var FLAGS =
+{
+	  PRIVATE            : 0x001
+	, PROTECTED          : 0x002
+	, PUBLIC             : 0x004
+	, VIRTUAL            : 0x008
+	, INHERITED_INSTANCE : 0x010
+	, INHERITED_STATIC   : 0x020
+	, STORED             : 0x040
+}
+
+OoJs.setupClass = setupClass
+OoJs.typeOf     = typeOf
+
+/** @expose */
+function OoJs(){ return null } // Can't instanciate
+
+
+function setupClass( callerNamespace, sub, base )
+{
+	var subCl = callerNamespace[ sub ]
+
+	function Static(){}
+
+	Object.defineProperty( Static, "Public"            , { value: Public             } )
+	Object.defineProperty( Static, "Protected"         , { value: Protected          } )
+	Object.defineProperty( Static, "Private"           , { value: Private            } )
+	Object.defineProperty( Static, "getPrivateInstance", { value: getPrivateInstance } )
+
+	Object.defineProperty( Static, "ooID", { value: uid()       } )
+	Object.defineProperty( subCl , "ooID", { value: Static.ooID } )
+
+	// makes your life easier when debugging things
+	//
+	Object.defineProperty
+	(
+		  Static
+		, "toString"
+		, { value: function toString(){ return "function Static(){ /*" + sub + "*/ }" } }
+	)
+
+	Object.defineProperty
+	(
+		  subCl
+		, "toString"
+		, { value: function toString(){ return "function " + sub + "()" } }
+	)
+
+
+	// Keep the meta data of our classes, so when something wants to inherit, we have the relevant information
+	//
+	classes  [ Static.ooID ] = new ClassMeta     ( callerNamespace, Static, sub, Static.ooID, IFace )
+	instances[ Static.ooID ] = new IntancesRecord( Static, Static.ooID, subCl      )
+	classIDs [     sub     ] = Static.ooID
+
+	if( 'undefined' !== typeof base )
 	{
-		this.Class = namespace[ sub  ]; this.Static = Static; this.baseName  = base
-		this.Base  = namespace[ base ]; this.IFace  = IFace ; this.className = sub
-		this.props = new Properties   ; this.instances = [] ; this._iFace    = namespace[ sub ]
+		subCl.prototype              = Object.create( callerNamespace[ base ].prototype )
+		classes[ Static.ooID ].bases = Array( base )
+
+
+		// if supports OoJs
+		//
+		if( classIDs[ base ] )
+
+			instances[ Static.ooID ].supers.push( classIDs[ base ] )
 	}
 
-	Meta.prototype = { _accessModifier : _accessModifier }
+	Object.defineProperty( subCl.prototype, "constructor", { configurable: true, value: subCl      } )
+	Object.defineProperty( subCl.prototype, "Public"     , { configurable: true, value: Public     } )
+	Object.defineProperty( subCl.prototype, "Protected"  , { configurable: true, value: Protected  } )
+	Object.defineProperty( subCl.prototype, "Private"    , { configurable: true, value: Private    } )
+	Object.defineProperty( subCl.prototype, "Super"      , { configurable: true, value: Super      } )
+	Object.defineProperty( subCl.prototype, "Virtual"    , { configurable: true, value: Virtual    } )
 
-	var Static = setupClass( "OoJs" )
 
-	Static.Public( setupClass )
-	// Static._meta.Class.extend     = extend
+	// is the interface which will be returned by the constructor of the class
+	//
+	function IFace (){}
 
-	function OoJs(){ return null } // Can't instanciate
+	IFace .prototype = Object.create( subCl.prototype )
 
-	function setupClass( sub, base )
+
+	return Static
+}
+
+
+function Public   (){ return accessModifier.call( this, arguments, FLAGS.PUBLIC    ) }
+function Protected(){        accessModifier.call( this, arguments, FLAGS.PROTECTED ) }
+function Private  (){        accessModifier.call( this, arguments, FLAGS.PRIVATE   ) }
+
+
+// Allow access to the private instance within a class if you have the interface
+//
+function getPrivateInstance( iFace )
+{
+	var parent
+
+	// prevent cheating
+	//
+	if( this !== classes[ instances[ this.ooID ].classID ].Static )
+
+		return null
+
+
+	if( ( parent = findParent( iFace.ooID, this.ooID ) ) )
+
+		return instances[ parent ]._this
+
+
+	else
+
+		return null
+}
+
+
+// get a semantic typeof
+//
+function typeOf( object ){ return classes[ instances[ object.ooID ].classID ].name }
+
+
+// First deals with registering the methods as virtual, then returns an array for Public, Private or Protected
+//
+function Virtual  ()
+{
+	accessModifier.call( this, arguments, FLAGS.VIRTUAL )
+
+	var args = Array.prototype.slice.apply( arguments )
+
+	args[ args.length ] = FLAGS.VIRTUAL
+	return args
+}
+
+
+// function Super
+// Creates a public interface which has protected members
+//
+function Super()
+{
+	if( instances[ this.ooID ]   &&   0 !== instances[ this.ooID ].supers.length )
+
+		throw new Error( "This object already has a parent. You have to call Super before calling Public or Protected." )
+
+
+	_Super.apply( this, arguments )
+}
+
+
+/// function _Super
+//  makes sure 'this' is initialized and it has the needed parents
+//
+// The difference between an inherited public interface and one created directly by a client
+// is that the inherited supers property should also allow subclass code to access protected
+// members. Since Super() can only be called from a private object, we know this instantiation
+// should also have protected members on it
+//
+function _Super()
+{
+	var constructor = this.prototype ? this.prototype.constructor : this.constructor
+
+	// if it is not an instance, no business here
+	//
+	if( classes[ instances[ constructor.ooID ].classID ].Static === this )
+
+		return
+
+
+	// if this is the first contact
+	//
+	if( 'undefined' === typeof this.ooID )
 	{
-		var subCl = namespace[ sub ]
-
-		function IFace (){}
-		function Static(){}
-
-		subCl .toString = function toString(){ return "function " + sub + "()"               }
-		Static.toString = function toString(){ return "function Static(){ /*" + sub + "*/ }" }
-
-		if( 'undefined' !== typeof base )
-
-			subCl.prototype              = Object.create( namespace[ base ].prototype )
-
-		subCl.prototype.constructor  = subCl
-		subCl.prototype.Public       = Public
-		subCl.prototype.Protected    = Protected
-		subCl.prototype.Super        = Super
-		subCl.prototype._static      = Static
+		initialize.call( this )
+	}
 
 
-		IFace .prototype             = Object.create( subCl.prototype )
-		IFace .prototype.constructor = subCl
+	// if it has an OoJs base and Super hasn't been called yet
+	//
+	var classID   = instances[ this.ooID ].classID
+	var classMeta = classes[ classID ]
+	var iFace
 
-		Static.prototype             = Object.create( subCl.prototype )
-		Static.prototype.constructor = subCl
+	for( var i = classMeta.bases.length - 1; i >= 0; --i )
+	{
+		var base = classMeta.bases[ i ]
 
-
-		Object.defineProperty
+		if
 		(
-			  Static
-			, "_meta"
-			, { writable: false, enumerable: false, value: new Meta( sub, base, Static, IFace ) }
+			   classIDs[ base ]            // base is OoJs
+			&& 0 === instances[ this.ooID ].supers.length  // there is no parent
 		)
-
-
-		if( 'undefined' !== typeof classes[ base ] )
-
-			Static._meta._inherit = function _inherit( that ){ __inherit.call( that, classes[ base ] ) }
-
-
-		// Static._Face
-		Static.Public    = Public
-		Static.Protected = Protected
-
-		// Keep the meta data of our classes, so when something wants to inherit, we have the relevant information
-		//
-		classes[ sub ] = Static._meta
-
-		return Static
-	}
-
-	function Public   (){ return _accessModifier.call( this, arguments, "public"    ) }
-	function Protected(){        _accessModifier.call( this, arguments, "protected" ) }
-
-
-	// This allows users to call parameters to their superclass constructor
-	//
-	function Super()
-	{
-		if( 'undefined' !== typeof this._super )
-
-			throw new Error( "You have to call Super before calling Public or Protected." )
-
-
-		_Super.apply( this, arguments )
-	}
-
-
-	// function _Super
-	// Creates a public interface which has protected members
-	//
-	// The difference between an inherited public interface and one created directly by a client
-	// is that the inherited _super property should also allow subclass code to access protected
-	// members. Since Super() can only be called from a private object, we know this instantiation
-	// should also have protected members on it
-	//
-	function _Super()
-	{
-		if( 'undefined' === typeof this._super )
-
-			this._super = new this._static._meta.Base( arguments )
-
-		// make sure we have a _meta
-		//
-		_initMeta( this )
-
-
-		// get the private object belonging to _super
-		//
-		var that = classes[ this._meta.baseName ].instances[ this._super._uuid ]
-
-
-		// if( 'undefined' !== typeof that && 'undefined' !== that.props )
-
-			this._meta.props.inherit = that._meta.props.own
-
-		// else
-
-		// 	this._meta.props.inherit = new Properties().own
-
-		extend( this._super, that._meta.props.own._protected )
-	}
-
-
-
-	function _initMeta( that )
-	{
-		// For instances, give them a meta object
-		//
-		if( ! that._meta )
 		{
-			that._meta =
 
-			new Meta
+			this[ base ] = {}
+
+			fNewConstr.prototype = classMeta.namespace[ base ].prototype
+
+			iFace = new fNewConstr( classMeta.namespace[ base ], arguments )
+
+			instances[ this.ooID ].supers.push( iFace.ooID )
+
+
+			// allow this to call methods on super via supers
+			//
+			addProtected.call( instances[ iFace.ooID ]._this )
+
+			this[ base ] = iFace
+		}
+	}
+}
+
+
+// add the protected members to the public iFace for usage with _super within the class
+// allows calling protected superclass methods on this.base.xxx
+//
+function addProtected()
+{
+	var info =
+	{
+		  instRec: instances[ this.ooID ]
+		, layout : classes[ instances[ this.ooID ].classID ].instanceLayout
+		, iFace  : instances[ this.ooID ].iFace
+	}
+
+	createAccessors.call( this, info, true )
+}
+
+
+// dummy constructor to pass an array of parameters to another constructor
+//
+function fNewConstr( constructor, aArgs )
+{
+	return constructor.apply( this, aArgs );
+}
+
+
+/// function accessModifier
+//
+// - call _Super to assure the object is initialized and has its base classes
+// - store the data members of this class in instances
+// - inherit the layout from base classes
+// - store the layout of the current class
+// - change the pointers to virtual functions in the base classes if we override them
+// - create accessor properties on this and iFace
+// - if it was a call to this.Public, return the interface
+//
+function accessModifier( newMembers, accessLvl )
+{
+
+	_Super.apply( this )
+
+
+	// Store some often used properties
+	//
+	var layoutType  = classes[ instances[ this.ooID ].classID ].Static === this  ?  "staticLayout"  :  "instanceLayout"
+
+	var info =
+	{
+		  instRec       : instances[ this.ooID ]
+		, classID       : instances[ this.ooID ].classID
+		, supers        : instances[ this.ooID ].supers
+		, iFace         : instances[ this.ooID ].iFace
+		, classMeta     : classes[ instances[ this.ooID ].classID ]
+		, virtuals      : classes[ instances[ this.ooID ].classID ].virtuals
+		, layout        : classes[ instances[ this.ooID ].classID ][ layoutType ]
+		, layoutTypeFlag: classes[ instances[ this.ooID ].classID ].Static === this  ?  FLAGS.INHERITED_STATIC  :  FLAGS.INHERITED_INSTANCE
+		, layoutType    : layoutType
+		, accessLvl     : accessLvl
+	}
+
+
+	// deal with private data members once per instance
+	//
+	storePrivate.call( this, info )
+
+
+
+	// resolve all inherited stuff and write them to the layout once per layout type per class
+	//
+	inherit.call( this, info )
+
+
+
+
+	var member
+
+	// store the layout of the class
+	// we keep track of the id of the first object of this class, so we will no longer execute this
+	// after the constructor of that object is finished
+	//
+	if( null === info.classMeta.layoutInstance  ||  this.ooID === info.classMeta.layoutInstance )
+	{
+		if( layoutType === "instanceLayout" )
+
+			info.classMeta.layoutInstance = this.ooID
+
+
+		for( var i = newMembers.length - 1; i >= 0; --i )
+		{
+			member = newMembers[ i ]
+
+			// coming from Virtual
+			//
+			if( Array.isArray( member )  &&  member[ member.length-1 ] === FLAGS.VIRTUAL )
+
+				// length - 2, cause the last one is FLAGS.VIRTUAL
+				//
+				for( var j = member.length - 2; j >= 0; --j )
+
+					accessHelper.call( this, info, member[j] )
+
+			else
+			{
+				accessHelper.call( this, info, member )
+			}
+		}
+	}
+
+
+
+	// check if any of the new members being passed in overrides virtual methods in the base classes
+	//
+	if( "instanceLayout" === layoutType )
+	{
+		for( var k = newMembers.length - 1; k >= 0; --k )
+		{
+			member = newMembers[ k ]
+
+			if( 'function' !== typeof member )
+
+				continue
+
+
+			var name = /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
+
+
+			if( 'undefined' !== typeof info.virtuals[ name ] )
+
+				for( var m = info.virtuals[ name ].length - 1; m >= 0; --m )
+
+					if( info.virtuals[ name ][ m ].ownerClass !== info.classID )
+
+						fixVirtual.call( this, info, name, info.virtuals[ name ][ m ].ownerClass )
+		}
+	}
+
+
+	// set the actual accessor properties
+	// no need to do this with virtual, because virtual is always wrapped in Private, Protected or Public
+	//
+	if( FLAGS.VIRTUAL !== accessLvl )
+
+		createAccessors.call( this, info )
+
+
+	// if this is Public() and we are an instance, return the instance
+	//
+	if( accessLvl === FLAGS.PUBLIC  &&  layoutType === 'instanceLayout' )
+
+		return instances[ this.ooID ].iFace
+}
+
+
+
+// take the members on the object and store them in the layout, and store the data in instances
+// then delete the original property
+//
+function storePrivate( info )
+{
+	if( info.instRec.flags & FLAGS.STORED )
+
+		return
+
+
+	instances[ this.ooID ].flags |= FLAGS.STORED
+
+
+	var firstClassRun =  null === info.layout
+
+
+	if( firstClassRun )
+
+		info.layout = info.classMeta[ info.layoutType ] = new Object
+
+
+	for( var key in this )
+	{
+		if( ! this.hasOwnProperty( key ) )
+
+			continue
+
+
+		if( firstClassRun )
+
+			registerMember( info.layout, key, null, FLAGS.PRIVATE, info.classID, true )
+
+
+
+		storeMember.call( this, key, this[ key ] )
+
+
+		delete this[ key ]
+	}
+
+}
+
+
+
+// classID is the id of the class defining this member
+//
+
+function accessHelper( info, member )
+{
+	var ref   = 'function' === typeof member ? member : null
+	var name  = 'string'   === typeof member ? member : /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
+
+
+	// if it has been put on the interface before because it was inherited public, but the access level has changed
+	// remove it from the interface
+	//
+	if
+	(
+		   'undefined' !== typeof info.layout[ name ]
+		&& 'undefined' !== typeof info.instRec.iFace[ name ]
+
+		&& ! ( info.accessLvl & FLAGS.PUBLIC )
+		&& info.layout[ name ].flags & FLAGS.PUBLIC
+	)
+	{
+		delete info.instRec.iFace[ name ]
+	}
+
+
+
+	// if we have a reference to it but it doesn't exist, it's a method of the current class, register it
+	// if it does exist, but it's not from this class, it's inherited, overwrite it
+	//
+	if
+	(
+		   'undefined' !== typeof info.layout[ name ]  &&  ref  &&  info.layout[ name ].ownerClass !== info.classID
+
+		|| 'undefined' === typeof info.layout[ name ]  &&  ref
+	)
+	{
+		registerMember( info.layout, name, ref, info.accessLvl, info.classID, false /*don't throw if it already exists*/ )
+	}
+
+
+	// if it is inherited or a data member or been set by virtual, set the flags to the right access level
+	//
+	else if(	'undefined' !== typeof info.layout[ name ] )
+	{
+		info.layout[ name ].flags = info.accessLvl | ( info.layout[ name ].flags & FLAGS.VIRTUAL )
+
+
+	}
+
+	// we don't know what it is
+	//
+	else
+
+		throw new Error( "Couldn't find definition of member: " + name + " in class: " + info.classMeta.name )
+
+
+
+	// deal with virtuality
+	//
+	if( info.accessLvl & FLAGS.VIRTUAL )
+	{
+		info.virtuals[ name ] = info.virtuals[ name ] || []
+
+		info.virtuals[ name ].push( info.layout[ name ] )
+	}
+}
+
+
+
+// run through all base classes to get the inherited members
+//
+function inherit( info )
+{
+	if( info.classMeta.inherited[ info.layoutType ] )
+
+		return
+
+
+	info.classMeta.inherited[ info.layoutType ] = true
+
+
+	for( var i = info.supers.length - 1; i >= 0; --i )
+	{
+		var layoutObj = classes[ instances[ info.supers[ i ] ].classID ][ info.layoutType ]
+		var virtuals  = classes[ instances[ info.supers[ i ] ].classID ].virtuals
+
+
+		// loop through all the parent properties
+		//
+		for( var key in layoutObj )
+		{
+			// if it is private, don't inherit
+			//
+			if
 			(
-				  that._static._meta.Class
-				, that._static._meta.baseName
-				, that._static._meta.Static
-				, that._static._meta.IFace
+				   ! layoutObj.hasOwnProperty( key )
+				|| layoutObj[ key ].flags & FLAGS.PRIVATE
 			)
-		}
 
-		// no longer needed, exists only to make this possible
-		//
-		delete that._static
-	}
+				continue
 
 
-
-	/// function __inherit
-	//
-	// Gives subclasses the public and protected properties. Is first called by _accessModifier
-	// The this object for this function is the Static or this object that comes to inherit.
-	// The classMeta are from the baseclass being inherited from.
-	//
-	//
-	// @param this      is the object that comes to inherit (subclass)
-	// @param classMeta context of the class in which we run (base class)
-	//
-	function __inherit( classMeta )
-	{
-		switch( typeof this )
-		{
-			case 'function' : // do static stuff here
-
-				this._meta.props.inherit = classMeta.props.own
-				break
-
-
-			case 'object'   : // do instance stuff here
-
-				// will create a super object if the user hasn't called Super before and
-				// will set this._meta.props.inherit to the own props of the super
-				//
-				_Super.apply( this )
-		}
-
-	}
-
-
-	/// function _accessModifier
-	//
-	// Backend to Public() and Protected(). Calls attach in with the right parameters so we get our object set up.
-	//
-	// @param this      needs to have it's this set to the object we're patching
-	// @param args      the list of arguments past to Protect or Public
-	// @param access    the access level, string "public" or "protected"
-	//
-	// @return the public interface for the object. This is what the constructor should return
-	//
-	function _accessModifier( newProps, access )
-	{
-		// make sure this instance has a _meta
-		//
-		_initMeta( this )
-
-
-		// just shortcuts
-		//
-		var props     = this._meta.props
-		var classMeta = this._meta.Static._meta
-
-		// if the baseclass isn't supporting OoJs, no inherit function will be defined.
-		// just give this object the necessary properties that normally get set by _inherit
-		//
-		if( 'undefined' === typeof classMeta._inherit )
-
-			this._meta.props.inherit = new Properties().own
-
-
-		// else, if we haven't already inherited, do it now
-		//
-		else if( !props.inherit )
-
-			classMeta._inherit( this )
-
-
-		// if public, create a new IFace to return and store an id to the private object, in case a subclass
-		// comes to inherit, we need to attach their methods to the right instance
-		//
-		if( access === "public" )
-		{
-			if( 'object' === typeof this )
-			{
-				this._meta._iFace       = new classMeta.IFace
-				this._meta._iFace._uuid = Math.random()
-
-				classMeta.instances[ this._meta._iFace._uuid ] = this
-			}
-
-			// If it is static, no need to create an IFace, since the constructor serves as public interface
+			// if we don't have this one yet, inherit it
 			//
-			attach.call( this, newProps, props.inherit._public, props.inherit._protected, [ props.own._public, this._meta._iFace ] )
-
-			return this._meta._iFace
-		}
-
-
-		// Protected, just store in this._meta.props.own._protected for subclasses later
-		//
-		else
-		{
-			attach.call( this, newProps, props.inherit._protected, props.inherit._public, [ props.own._protected ] )
-		}
-
-	}
-
-
-	/// function attach
-	//
-	// Merges inherited with new properties to set them all on this and on the public interface for the object.
-	// Also stores the values in case a subclass object later comes to inherit from us, we just pass them our interface.
-	//
-	// @param this          should be set to the private object we're patching (this or Static)
-	// @param newProperties the new properties delivered via params of either Protected() or Public()
-	// @param mainProps     the inherited properties corresponding to the access level for the newProperties
-	// @param altProps      the alternate inherited properties (public if main where protected)
-	// @param iFaces        an array of interfaces. (Class for static, iFace for instance in case of public),
-	//                      as well as this._meta.props.own._public or ._protected respective.
-	//
-	function attach( newProperties, mainProps, altProps, iFaces )
-	{
-		for( var i = newProperties.length - 1; i >= 0; --i )
-		{
-			var name = newProperties[i]
-			var own  = true
-			var prop
-
-			// if it is a function in the scope of Public/Protected:
-			//
-			switch( typeof name )
+			else if( 'undefined' === typeof info.layout[ key ] )
 			{
-				case 'function':
-
-					name = /\W*function\W+([\w\$]+)\(/.exec( name.toString() )[ 1 ]
-
-					prop = newProperties[i]
-					own  = true
-
-					break
-
-
-				case 'string':
-
-					// we assume that the property exist and store it. We will later test for undefined
-					//
-					prop = this[ name ]
-					own  = true
-
-					break
-
-
-				default:
-
-					throw new TypeError( "The second parameter and onewards of Public/Protected should be either valid function references or strings. You passed: " + name )
-
+				info.layout[ key ] = layoutObj[ key ]
+				info.layout[ key ].flags = layoutObj[ key ].flags  &  ~FLAGS.VIRTUAL
 			}
 
 
-			// loop over the inherited ones
-			// if the property existed on this, delete all other references
-			// if it didn't exist, maybe it was an inherited one for which the access level is being
-			// overridden. Try to find the reference and store it.
+			// if we have it already, several baseclasses provide it since we don't yet deal with multiple inheritance, throw
 			//
-			var inherited = [ mainProps, altProps ]
+			else if( info.layout[ key ].ownerClass !== info.classID )
 
-			for( var j = 1; j >= 0; --j )
-			{
-				// We haven't found it on this, and there is an inherited version available: take the reference
-				//
-				if( 'undefined' === typeof prop  &&  'undefined' !== typeof inherited[ j ][ name ] )
-				{
-					prop = inherited[ j ][ name ]
-					own  = false
-				}
-
-				// remove the reference, to prevent the same one being imported on both public and protected
-				//
-				delete inherited[ j ][ name ]
-			}
-
-
-			// if we haven't found it anywhere, throw an error
-			//
-			if( 'undefined' === typeof prop )
-
-				throw new Error( "Couldn't find an implementation for property: " + name + " that you wanted to make public/protected. In class: " + this._meta.className )
-
-
-			// all good, set it
-			//
-			setProp( this, name, prop, iFaces, own )
+				throw new Error( "two baseclasses both provide member: " + key )
 		}
 
-		// Put the non overridden inherited functions on this and the interfaces
+
+		// copy the entries in the virtual table unless the parent has overridden it with a non-virtual method
 		//
-		for( var key in mainProps )
-		{
-			setProp( this, key, mainProps[ key ], iFaces, false )
-		}
-	}
-
-
-	// Helper function to create anonymous functions outside loops with closures
-	//
-	function iHateClosures( fun, that ){ return function(){ return fun.apply( that, arguments ) } }
-
-
-	/// function setProp
-	//
-	// sets the property on the right object with proper attributes
-	//
-	// @param that     the this value for the object being patched
-	// @param propName the name of the property
-	// @param property the reference to the object or function
-	// @param iFaces   the public interface or _meta._props_own
-	// @param own      whether it is an own property of this (so we don't wrap functions that are already wrapped)
-	//
-	function setProp( that, propName, property, iFaces, own )
-	{
-		// take the right action considering whether the property is a data member or a function
-		//
-		switch( typeof property )
-		{
-			case 'function':
-
-				// put it on this
-				//
-				that[ propName ] = property
-
-				// If the method ends on another object, it needs to have the reference 'this' to this private
-				// object in order to access other methods and data members, so wrap it unless it's already wrapped
-				//
-				for( var k = iFaces.length - 1; k >= 0; --k )
-				{
-					if( own )
-
-						iFaces[ k ][ propName ] = iHateClosures( property, that )
-
-					else
-
-						iFaces[ k ][ propName ] = property
-
-				}
-
-				break
-
-			case 'string' :
-			case 'number' :
-			case 'boolean':
-			case 'object' :
-
-				iFaces.push( that )
-
-				for( var l = iFaces.length - 1; l >= 0; --l )
-				{
-					// Set a datamember with writable to false. This will prevent people from overwriting
-					// the reference and having the public interface pointing to a different object than
-					// the private property. Note that assigning to it will fail silently. You can still
-					// change it's properties.
-					//
-					Object.defineProperty( iFaces[ l ], propName, withValue( property ) )
-				}
-
-				break
-
-			default:
-
-				throw new TypeError( "Can only make methods or objects public/protected. It is not possible with primitive values. You tried share: " + name )
-		}
-	}
-
-
-
-	/// function withValue
-	//
-	// create a property descriptor for non-writable properties with the given values
-	//
-	function withValue( value )
-	{
-		var d = withValue.d ||
-		(
-			withValue.d =
-			{
-				  writable    : false
-				, enumerable  : true
-				, configurable: true
-				, value       : null
-			}
-		)
-
-		d.value = value
-
-		return d
-	}
-
-
-
-	// extend: Copy references to properties on other objects
-	// options is a string which holds one of: "overwrite", "no overwrite", "overwrite only"
-
-	function extend( root, props, options )
-	{
-		options = options || "no overwrite"
-
-		Object.getOwnPropertyNames( props ).forEach( extendLifting )
-
-
-		function extendLifting( key )
+		for( var method in virtuals )
 		{
 			if
 			(
-					"overwrite"       === options
-				|| "no overwrite"    === options   &&  !root.hasOwnProperty( key )
-				|| "overwrite only"  === options   &&   root.hasOwnProperty( key )
-			)
+				   virtuals.hasOwnProperty( method )
 
-				root[ key ] = props[ key ];
+				&& (
+						   'undefined' === typeof layoutObj[ method ]
+						|| layoutObj[ method ].flags & FLAGS.VIRTUAL
+					)
+			)
+			{
+				// currently doesn't support multiple inheritance
+				//
+				info.virtuals[ method ] = []
+
+				for( var parent in virtuals[ method ] )
+
+					info.virtuals[ method ][ info.virtuals[ method ].length ] = virtuals[ method ][ parent ]
+			}
 		}
 
-		return root;
 	}
-})( OoJsNamespace ) // End of OoJs
-
-if( 'undefined' !== typeof module )
-{
-	module.exports.OoJs = OoJs
 }
 
+
+
+// change this.methodName on the base that declared it virtual to our new method
+// this way inherited methods from that baseclass that call this method on their 'this' will
+// call the overridden one by this class
+//
+function fixVirtual( info, name, ownerClass )
+{
+	var parent = findParent( this.ooID, ownerClass )
+
+	delete instances[ parent ]._this[ name ]
+
+	// don't set a setter, so methods can't be overridden
+	//
+	Object.defineProperty
+	(
+		  instances[ parent ]._this
+		, name
+
+		,  {
+				  enumerable  : true
+				, configurable: true
+
+				, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( info.layout[ name ].reference, this )
+			}
+	)
+}
+
+
+
+
+// function createAccessors
+// @param protectedOnIFace allows creating an iface with protected members allowing calling base class methods
+//
+function createAccessors( info, protectedOnIFace )
+{
+	var defineProperty = Object.defineProperty
+
+	for( var key in info.layout )
+	{
+
+		if( ! info.layout.hasOwnProperty( key ) )
+
+			continue
+
+
+		var member     = info.layout[ key ]
+		var mReference = member.reference
+
+		var toBePatched
+
+
+		if( true === protectedOnIFace )
+
+			toBePatched = member.flags & FLAGS.PROTECTED  ?  [       info.iFace ]  :  []
+
+
+		else
+
+			toBePatched = member.flags & FLAGS.PUBLIC     ?  [ this, info.iFace ]  :  [ this ]
+
+
+		for( var i = toBePatched.length - 1; i >= 0; --i )
+		{
+			var ownerID    = findParent( this.ooID, member.ownerClass )
+
+			// if it is a data member
+			//
+			if( !mReference )
+			{
+				defineProperty
+				(
+					  toBePatched[ i ]
+					, key
+
+					,  {
+							  enumerable  : true
+							, configurable: true
+
+							, get: ( function( key, ownerID ){ return function()        { return instances[ ownerID ].state[ key ]  } } )( key, ownerID )
+
+
+							, set: ( function( key, ownerID ){ return function( value ) { instances[ ownerID ].state[ key ] = value } } )( key, ownerID )
+						}
+				)
+			}
+
+
+			else // it is a method
+			{
+				// find it's reference, and if it's inherited, set it to point to parent this
+				//
+				var that   = instances[ ownerID ]._this
+
+
+				// don't set a setter, so methods can't be overridden
+				//
+				defineProperty
+				(
+					  toBePatched[i]
+					, key
+
+					,  {
+							  enumerable  : true
+							, configurable: true
+
+							, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( mReference, that )
+						}
+				)
+			}
+		}
+	}
+}
+
+
+
+function findParent( id, classID )
+{
+	// if the object is of the right class return it
+	//
+	if( instances[ id ].classID === classID )
+
+		return id
+
+
+	var parent = null
+	var ssuper
+
+	for( var i = instances[ id ].supers.length - 1; ( ssuper = instances[ id ].supers[ i ] ) ; --i )
+	{
+		if( ssuper.classID === classID )
+		{
+			parent = ssuper
+			break
+		}
+
+		else if( null !== ( parent = findParent( ssuper, classID ) ) )
+
+			break
+	}
+
+	return parent
+}
+
+
+
+function registerMember( layout, name, reference, flags, ownerClass, throw_ )
+{
+	if( 'undefined' === typeof layout[ name ] || !throw_ )
+
+		layout[ name ] = { flags: flags, reference: reference, ownerClass: ownerClass }
+
+	else
+
+		throw new Error( "Property '" + name + "' is already defined" )
+
+}
+
+
+
+function storeMember( name, value )
+{
+	if( 'undefined' === typeof value )
+
+		value = null
+
+	instances[ this.ooID ].state[ name ] = value
+}
+
+
+function initialize()
+{
+	Object.defineProperty( this, "ooID", { value: uid() } )
+
+	var iFace = new classes[ this.constructor.ooID ].IFace
+
+	Object.defineProperty( iFace, "ooID", { value: this.ooID } )
+
+	instances[ this.ooID ] = new IntancesRecord( this, this.constructor.ooID, iFace )
+}
+
+
+function uid()
+{
+	// we will keep an incremental counter, but set the starting value random to some integer
+	//
+	uid.counter = uid.counter || 0
+
+	return ++uid.counter
+}
+
+
+})( TidBits )
+
+
+if( 'undefined' !== typeof module )
+
+	module.exports.OoJs = TidBits.OoJs
+
+;
