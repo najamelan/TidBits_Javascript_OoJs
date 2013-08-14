@@ -2,7 +2,7 @@ var TidBits = TidBits || {} // our namespace
 
 if( 'undefined' !== typeof module )
 {
-	var testCase     = require( '../../unitTesting/TestCase.js' )
+	var testCase     = require( '../../UnitTesting/TestCase.js' )
 	var oojsTestData = require( './oojsTestData.js' )
 
 	TidBits.TestCase = testCase.TestCase
