@@ -1,4 +1,4 @@
-/**@preserve TidBits OoJs - version: 13.08.14 (alpha)
+/**@preserve TidBits OoJs - version: 13.08.14-alpha
  * README: https://github.com/najamelan/TidBits_Javascript_OoJs
  */
 
@@ -454,8 +454,7 @@ function storePrivate( info )
 
 
 
-		storeMember.call( this, key, this[ key ] )
-
+		info.instRec.state[ key ] = this[ key ]
 
 		delete this[ key ]
 	}
@@ -766,17 +765,6 @@ function registerMember( layout, name, reference, flags, ownerClass, throw_ )
 
 		throw new Error( "Property '" + name + "' is already defined" )
 
-}
-
-
-
-function storeMember( name, value )
-{
-	if( 'undefined' === typeof value )
-
-		value = null
-
-	instances[ this.ooID ].state[ name ] = value
 }
 
 
