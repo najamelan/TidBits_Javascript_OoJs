@@ -1,7 +1,11 @@
 TidBits Javascript OoJs
 =======================
 
+**Latest Stable      Version: None yet - please test me!**  
+**Latest Development Version: 13.08.14-alpha**
+
 This tidbit proposes a way to use a classical OOP paradigm in Javascript. It is part of the [TidBits Javascript Library](https://github.com/najamelan/TidBits_Javascript).
+
 
 This shows the basic syntax of what a class looks like in OoJs
 
@@ -13,7 +17,7 @@ This shows the basic syntax of what a class looks like in OoJs
 	if( namespace[ "Template" ] ) return    // protect against double inclusions
 
 	    namespace.Template = Template
-	var Static             = TidBits.OoJs.setupClass( namespace, "Template" )
+	var Static             = TidBits.OoJs.setupClass( namespace, "Template", "BaseClass" )
 
 	// Data members, private by default
 	//
@@ -85,6 +89,7 @@ This shows the basic syntax of what a class looks like in OoJs
 })( window )
 ```
 
+## Table of Contents
 
 -  [Design goals](#design-goals)
 -  [Why would you want to use OOP](#why-would-you-want-to-use-oop)
@@ -189,7 +194,7 @@ This section explains the design choices of and functioning of OoJs. In brief th
 -  no friend classes
 -  no multiple inheritance (for the moment)
 -  no possibility to set a standard access level when inheriting from a class (where C++ allows you to do "class A : protected B"), however you can override the access level on an indivitual basis for your class members.
--  one of the features are currently incomplete. They are related to a property .Base which will be available on your private object of a Derived class and which will allow you to call Base versions of methods. The current implementation only provides .Base for your direct parent, and not for ancestors higher up the chain.
+-  one feature is currently incomplete. It's related to the property .BaseName which will be available on your private object of a Derived class and which will allow you to call Base versions of methods. The current implementation only provides .BaseName for your direct parent, and not for ancestors higher up the chain.
 -  there is currently no clone utility function provided with OoJs. The problem being I haven't found a simple way to determine which properties should be deep copied and which not. What if someone writes (and they can, so they will): this.myWindow = window. Deep copying a data member like that would be a royal disaster... You will have to provide a copy constructor dealing with the right properties if you want this
 -  I haven't tested whether it works well to inherit from non-OoJs bases. Say you could subclass "Function" to generate functions, but I haven't tested fancy stuff like that. (Your objects inherit the prototype of your base, so with most stuff it should be fine)
 -  classes that inherit from one another have to live in the same namespace
@@ -204,20 +209,18 @@ If you are using OoJs and there's stuff you can't do due to the limitations, ple
 
 ### Installation
 
-The easiest way to include this in your project is by adding either TidBits Javascript as a submodule to your repository or if you don't want everything, just take the TidBits OoJs submodule. **For deployment you only really need oojs.js**
+The easiest way to include this in your project is by adding either TidBits Javascript as a submodule to your repository or if you don't want everything, just take the TidBits OoJs submodule. **For deployment you only really need [oojs.js](https://raw.github.com/najamelan/TidBits_Javascript_OoJs/master/oojs.js)**
 
 So, either:
 
-```bash
-git submodule add git@github.com:najamelan/TidBits_Javascript.git includes/tidbitsJavaScript
-```
+Check the [installation instructions of the TidBits Javascript Library](https://github.com/najamelan/TidBits_Javascript#installation)
 
 or:
 
 ```bash
 mkdir includes
-git submodule add git@github.com:najamelan/TidBits_Javascript_UnitTesting.git includes/OoJs
-git submodule add git@github.com:najamelan/TidBits_Javascript_UnitTesting.git includes/UnitTesting
+git submodule add https://github.com/najamelan/TidBits_Javascript_OoJs.git includes/OoJs
+git submodule add https://github.com/najamelan/TidBits_Javascript_UnitTesting.git includes/UnitTesting
 ```
 
 ### Verify your installation
@@ -229,9 +232,16 @@ cd includes/OoJs
 node tests/testOoJs.js
 ```
 
-If you want to test if it works in your browser, open the file *includes/OoJs/tests/test.htm*
+#### Verify your installation
 
-This should output the test results.
+If you are using Nodejs, run the unit tests:
+
+```bash
+cd includes/UnitTesting
+node tests/testOoJs.js
+```
+
+If you want to test if it works in your browser, open the file **tests/test.htm**
 
 
 ### Usage
@@ -267,6 +277,9 @@ OoJs provides the following functions:
 
 -  **this.Super( parameters )** allows you to send parameters to your parent class constructor. You should call this before calling Public/Private/Protected.
 
+-  On both static and instance you will have **.Public**, **.Private**, **.Protected** which take your members as parameters. Methods should be passed as references (their name without quotes), whereas data members should be their name as strings. You can override the access level of parent members, in which case you should pass them as strings. These methods also accept the return value of **this.Virtual** as a parameter. For instances, .Public will return an interface which you should return from your constructor.
+
+-  On your instance you can call **this.Virtual**. This method takes method references as parameters. You can call this in the parameter list of the above methods so you don't have to write your method names twice.
 
 #### Make sure your object is set up
 
@@ -291,13 +304,15 @@ MyClass( check )
 }
 ```
 
-It won't work as expected, and I won't ever make this work. Until you have finished calling Private/Protected/Public, you should do nothing other than declarations.
+It won't work as expected, and I won't ever make this work. Until you have finished calling Private/Protected/Public, you should do nothing other than declaration/initialisation.
+
 
 #### Declare data members and call Super before Public/Private/Protected
 
 You can pass parameters to your baseclass constructor by calling `this.Super( parameters )`. However, this is optional and if you don't need to pass on parameters, when you call Public/Private/Protected, OoJs will call your baseclass constructor for you without parameters. Thus once that's happened, you can't call it manually any more.
 
 When you declare data members, Public/Private/Protected will store them and replace them with accessor properties. So you need to declare them before calling any of these methods.
+
 
 #### Do not call virtual methods from your constructor
 

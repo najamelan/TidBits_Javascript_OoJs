@@ -8,7 +8,7 @@
 	if( namespace[ "Template" ] ) return    // protect against double inclusions
 
 	    namespace.Template = Template
-	var Static             = TidBits.OoJs.setupClass( namespace, "Template" )
+	var Static             = TidBits.OoJs.setupClass( namespace, "Template", "BaseClass" )
 
 	// Data members, private by default
 	//
