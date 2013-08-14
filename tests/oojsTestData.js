@@ -3,7 +3,7 @@ var TidBits = TidBits || {} // our namespace
 
 if( 'undefined' !== typeof module )
 {
-	TidBits.OoJs = require( '../oojs.dev.js' ).OoJs
+	TidBits.OoJs = require( '../oojs.js' ).OoJs
 }
 
 
@@ -11,6 +11,8 @@ if( 'undefined' !== typeof module )
 ;(function class_SSuper( namespace )
 {
 	'use strict';
+
+	if( namespace[ "SSuper" ] ) return
 
 	    namespace.SSuper = SSuper
 	var Static           = namespace.OoJs.setupClass( namespace, "SSuper" )
@@ -226,9 +228,11 @@ if( 'undefined' !== typeof module )
 
 /// Class Sub
 //
-;(function( namespace )
+;(function class_Sub( namespace )
 {
 	'use strict';
+
+	if( namespace[ "Sub" ] ) return
 
 	var SSuper = namespace.SSuper
 
@@ -428,9 +432,11 @@ if( 'undefined' !== typeof module )
 
 /// Class Subber
 //
-;(function( namespace )
+;(function class_Subber( namespace )
 {
 	'use strict';
+
+	if( namespace[ "Subber" ] ) return
 
 	namespace.Subber = Subber
 	var Static       = namespace.OoJs.setupClass( namespace, "Subber", "Sub" )
