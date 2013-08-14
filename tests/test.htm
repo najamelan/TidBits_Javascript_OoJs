@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Test</title>
+
+	<script src="../oojs.js"                   ></script>
+	<script src="../../unitTesting/TestCase.js"></script>
+
+	<script src="oojsTestData.js"></script>
+	<script src="testOoJs.js"    ></script>
+
+
+	<script>
+
+		function run()
+		{
+			var test = new TidBits.Test_OoJS()
+
+			document.getElementById( 'output' ).innerHTML = test.getResults()
+		}
+
+	</script>
+
+</head>
+<body onload="run()">
+
+	<pre id="output"></pre>
+</body>
+</html>
