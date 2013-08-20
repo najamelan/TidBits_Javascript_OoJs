@@ -191,6 +191,7 @@ This section explains the design choices of and functioning of OoJs. In brief th
 -  you will have to include a class with sugar code (about 7KB) in order to make the magic work
 -  I haven't done performance testing to compare to other models, but it sure isn't the kind of framework to generate thousands of objects, rather use it to create good application design
 -  it's not cryptic, but you'll best still include a link to this readme for people reading your code to understand how it works
+-  you can't call a static method on an instance (I don't really know if I find it a good idea to implement that, but I might do for consistence with C++)
 -  no friend classes
 -  no multiple inheritance (for the moment)
 -  no possibility to set a standard access level when inheriting from a class (where C++ allows you to do "class A : protected B"), however you can override the access level on an indivitual basis for your class members.
