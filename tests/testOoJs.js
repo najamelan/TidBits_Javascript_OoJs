@@ -16,7 +16,7 @@ if( 'undefined' !== typeof module )
 // Testing
 //========
 
-;(function Class_Test_OoJS( namespace )
+;(function Class_Test_OoJS( namespace, undefined )
 {
 'use strict';
 
@@ -510,7 +510,7 @@ function accessControl()
 
 		,  {
 					message : "   try  to access private members from outside (8 tests)\n"
-				,  input   : typeof SSuper.staticSSuperPrivateMethod === 'undefined'
+				,  input   : SSuper.staticSSuperPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "SSuper.staticSSuperPrivateMethod method is not undefined: " +  typeof SSuper.staticSubPrivateMethod
@@ -520,7 +520,7 @@ function accessControl()
 
 		,  {
 					message : ""
-				,  input   : typeof SSuper.__base__ === 'undefined'
+				,  input   : SSuper.__base__ === undefined
 				,  expect  : true
 
 				,  errormsg:     "SSuper.__base__ is not undefined: " +  typeof SSuper.__base__
@@ -530,7 +530,7 @@ function accessControl()
 
 		,  {
 					message : ""
-				,  input   : typeof ssuper.instanceSSuperPrivateMethod === 'undefined'
+				,  input   : ssuper.instanceSSuperPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "ssuper.instanceSSuperPrivateMethod method is not undefined: "
@@ -541,7 +541,7 @@ function accessControl()
 
 		,  {
 					message : ""
-				,  input   : typeof ssuper.privateSSuperInstanceDM === 'undefined'
+				,  input   : ssuper.privateSSuperInstanceDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "ssuper.privateSSuperInstanceDM is not undefined: " +  typeof ssuper.privateSSuperInstanceDM
@@ -551,7 +551,7 @@ function accessControl()
 
 		,  {
 					message : ""
-				,  input   : typeof Sub.staticSubPrivateMethod === 'undefined'
+				,  input   : Sub.staticSubPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.staticSubPrivateMethod method is not undefined: " +  typeof Sub.staticSubPrivateMethod
@@ -561,7 +561,7 @@ function accessControl()
 
 		,  {
 					message : ""
-				,  input   : typeof Sub.__base__ === 'undefined'
+				,  input   : Sub.__base__ === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.__base__ is not undefined: " +  typeof Sub.__base__
@@ -571,7 +571,7 @@ function accessControl()
 
 		,  {
 					message : ""
-				,  input   : typeof sub.instanceSubPrivateMethod === 'undefined'
+				,  input   : sub.instanceSubPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.instanceSubPrivateMethod method is not undefined: " +  typeof sub.instanceSubPrivateMethod
@@ -581,7 +581,7 @@ function accessControl()
 
 		,  {
 					message : ""
-				,  input   : typeof sub.privateSubInstanceDM === 'undefined'
+				,  input   : sub.privateSubInstanceDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.privateSubInstanceDM is not undefined: " +  typeof sub.privateSubInstanceDM
@@ -591,7 +591,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a protected SSuper method from outside\n"
-				,  input   : typeof SSuper.staticSSuperProtectedMethod === 'undefined'
+				,  input   : SSuper.staticSSuperProtectedMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "SSuper.staticSSuperProtectedMethod method is not undefined: " +  typeof SSuper.staticSSuperProtectedMethod
@@ -601,7 +601,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a protected super method from outside\n"
-				,  input   : typeof ssuper.instanceSSuperProtectedMethod === 'undefined'
+				,  input   : ssuper.instanceSSuperProtectedMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "ssuper.instanceSSuperProtectedMethod is not undefined: " +  typeof ssuper.instanceSSuperProtectedMethod
@@ -611,7 +611,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a protected SSuper method via Sub\n"
-				,  input   : typeof Sub.staticSSuperProtectedMethod === 'undefined'
+				,  input   : Sub.staticSSuperProtectedMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.staticSSuperProtectedMethod method is not undefined: " +  typeof Sub.staticSSuperProtectedMethod
@@ -621,7 +621,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a protected super method via sub\n"
-				,  input   : typeof sub.instanceSSuperProtectedMethod === 'undefined'
+				,  input   : sub.instanceSSuperProtectedMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.instanceSSuperProtectedMethod is not undefined: " +  typeof sub.instanceSSuperProtectedMethod
@@ -633,7 +633,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Private SSuper method via Sub\n"
-				,  input   : typeof Sub.getPrivateStatic().staticSSuperPrivateMethod === 'undefined'
+				,  input   : Sub.getPrivateStatic().staticSSuperPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().staticSSuperPrivateMethod method is not undefined: " +  typeof Sub.getPrivateStatic().staticSSuperPrivateMethod
@@ -643,7 +643,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Private super method via sub\n"
-				,  input   : typeof sub.getPrivateInstance().instanceSSuperPrivateMethod === 'undefined'
+				,  input   : sub.getPrivateInstance().instanceSSuperPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().instanceSSuperPrivateMethod is not undefined: " +  typeof sub.getPrivateInstance().instanceSSuperPrivateMethod
@@ -673,7 +673,7 @@ function accessControl()
 
 		,  {
 					message : "   try  calling a static public method on instance\n"
-				,  input   : typeof sub.getPrivateInstance().staticSubPublicMethod === 'undefined'
+				,  input   : sub.getPrivateInstance().staticSubPublicMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSubPublicMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSubPublicMethod
@@ -683,7 +683,7 @@ function accessControl()
 
 		,  {
 					message : "   try  calling a static private method on instance\n"
-				,  input   : typeof sub.getPrivateInstance().staticSubPublicMethod === 'undefined'
+				,  input   : sub.getPrivateInstance().staticSubPublicMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSubPublicMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSubPublicMethod
@@ -693,7 +693,7 @@ function accessControl()
 
 		,  {
 					message : "   try  calling a static public method on instance\n"
-				,  input   : typeof sub.getPrivateInstance().staticSSuperPublicMethod === 'undefined'
+				,  input   : sub.getPrivateInstance().staticSSuperPublicMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSSuperPublicMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSSuperPublicMethod
@@ -703,7 +703,7 @@ function accessControl()
 
 		,  {
 					message : "   try  calling a static private method on instance\n"
-				,  input   : typeof sub.getPrivateInstance().staticSSuperProtectedMethod === 'undefined'
+				,  input   : sub.getPrivateInstance().staticSSuperProtectedMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSSuperProtectedMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSSuperProtectedMethod
@@ -713,7 +713,7 @@ function accessControl()
 
 		,  {
 					message : "   try  calling a static private method on instance\n"
-				,  input   : typeof sub.getPrivateInstance().staticSSuperPrivateMethod === 'undefined'
+				,  input   : sub.getPrivateInstance().staticSSuperPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSSuperPrivateMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSSuperPrivateMethod
@@ -723,7 +723,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Private instance method on Static\n"
-				,  input   : typeof Sub.getPrivateStatic().instanceSubPrivateMethod === 'undefined'
+				,  input   : Sub.getPrivateStatic().instanceSubPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSubPrivateMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSubPrivateMethod
@@ -733,7 +733,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Private instance method on Static\n"
-				,  input   : typeof Sub.getPrivateStatic().instanceSubPublicMethod === 'undefined'
+				,  input   : Sub.getPrivateStatic().instanceSubPublicMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSubPublicMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSubPublicMethod
@@ -743,7 +743,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Private SSuper instance method on Static\n"
-				,  input   : typeof Sub.getPrivateStatic().instanceSSuperPrivateMethod === 'undefined'
+				,  input   : Sub.getPrivateStatic().instanceSSuperPrivateMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSSuperPrivateMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSSuperPrivateMethod
@@ -753,7 +753,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Protected instance method on Static\n"
-				,  input   : typeof Sub.getPrivateStatic().instanceSSuperProtectedMethod === 'undefined'
+				,  input   : Sub.getPrivateStatic().instanceSSuperProtectedMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSSuperProtectedMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSSuperProtectedMethod
@@ -763,7 +763,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Public instance method on Static\n"
-				,  input   : typeof Sub.getPrivateStatic().instanceSSuperPublicMethod === 'undefined'
+				,  input   : Sub.getPrivateStatic().instanceSSuperPublicMethod === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSSuperPublicMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSSuperPublicMethod
@@ -773,7 +773,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Private super Data Member via sub.SSuper\n"
-				,  input   : typeof sub.getPrivateInstance().SSuper.privateSSuperInstanceDM === 'undefined'
+				,  input   : sub.getPrivateInstance().SSuper.privateSSuperInstanceDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "typeof sub.getPrivateInstance().SSuper.privateSSuperInstanceDM is not undefined: " +  typeof sub.getPrivateInstance().SSuper.privateSSuperInstanceDM
@@ -788,7 +788,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Protected static dm on SSuper\n"
-				,  input   : typeof SSuper.protectedStaticSSuperDM === 'undefined'
+				,  input   : SSuper.protectedStaticSSuperDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "SSuper.protectedStaticSSuperDM method is not undefined: " +  typeof SSuper.protectedStaticSSuperDM
@@ -798,7 +798,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Protected Instance dm on ssuper\n"
-				,  input   : typeof ssuper.protectedInstanceSSuperDM === 'undefined'
+				,  input   : ssuper.protectedInstanceSSuperDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "ssuper.protectedInstanceSSuperDM method is not undefined: " +  typeof ssuper.protectedInstanceSSuperDM
@@ -808,7 +808,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Protected Instance dm inherited on sub\n"
-				,  input   : typeof sub.protectedInstanceSSuperDM === 'undefined'
+				,  input   : sub.protectedInstanceSSuperDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "sub.protectedInstanceSSuperDM method is not undefined: " +  typeof sub.protectedInstanceSSuperDM
@@ -818,7 +818,7 @@ function accessControl()
 
 		,  {
 					message : "   try  accessing a Protected static dm on Sub\n"
-				,  input   : typeof Sub.protectedStaticSubDM === 'undefined'
+				,  input   : Sub.protectedStaticSubDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.protectedStaticSubDM method is not undefined: " +  typeof Sub.protectedStaticSubDM
@@ -1149,7 +1149,7 @@ function inheritance()
 			//
 		,  {
 					message : "   make an inherited super data member protected\n"
-				,  input   : typeof Sub.publicSSuperPrimitiveDM === 'undefined'
+				,  input   : Sub.publicSSuperPrimitiveDM === undefined
 				,  expect  : true
 
 				,  errormsg:     "Sub.publicSSuperPrimitiveDM is not undefined: " +  typeof Sub.publicSSuperPrimitiveDM
@@ -1159,7 +1159,7 @@ function inheritance()
 
 		,  {
 					message : "   make an inherited super data member public\n"
-				,  input   : typeof Subber.publicSSuperPrimitiveDM !== 'undefined'
+				,  input   : Subber.publicSSuperPrimitiveDM !== undefined
 				,  expect  : true
 
 				,  errormsg:     "Subber.publicSSuperPrimitiveDM is undefined: " +  Subber.publicSSuperPrimitiveDM

@@ -5,7 +5,7 @@
 var TidBits = TidBits || {} // our namespace
 
 
-;(function class_OoJs( namespace )
+;(function class_OoJs( namespace, undefined )
 {
 'use strict';
 
@@ -112,7 +112,7 @@ function setupClass( callerNamespace, sub, base )
 	instances[ Static.ooID ] = new IntancesRecord( Static, Static.ooID, subCl      )
 	classIDs [     sub     ] = Static.ooID
 
-	if( 'undefined' !== typeof base )
+	if( base !== undefined )
 	{
 		subCl.prototype              = Object.create( callerNamespace[ base ].prototype )
 		classes[ Static.ooID ].bases = Array( base )
@@ -226,7 +226,7 @@ function _Super()
 
 	// if this is the first contact
 	//
-	if( 'undefined' === typeof this.ooID )
+	if( this.ooID === undefined )
 	{
 		initialize.call( this )
 	}
@@ -392,7 +392,7 @@ function accessModifier( newMembers, accessLvl )
 			var name = /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
 
 
-			if( 'undefined' !== typeof info.virtuals[ name ] )
+			if( info.virtuals[ name ] !== undefined )
 
 				for( var m = info.virtuals[ name ].length - 1; m >= 0; --m )
 
@@ -477,8 +477,8 @@ function accessHelper( info, member )
 	//
 	if
 	(
-		   'undefined' !== typeof info.layout[ name ]
-		&& 'undefined' !== typeof info.instRec.iFace[ name ]
+		   info.layout[ name ]        !== undefined
+		&& info.instRec.iFace[ name ] !== undefined
 
 		&& ! ( info.accessLvl & FLAGS.PUBLIC )
 		&& info.layout[ name ].flags & FLAGS.PUBLIC
@@ -494,9 +494,9 @@ function accessHelper( info, member )
 	//
 	if
 	(
-		   'undefined' !== typeof info.layout[ name ]  &&  ref  &&  info.layout[ name ].ownerClass !== info.classID
+		   info.layout[ name ] !== undefined &&  ref  &&  info.layout[ name ].ownerClass !== info.classID
 
-		|| 'undefined' === typeof info.layout[ name ]  &&  ref
+		|| info.layout[ name ] === undefined &&  ref
 	)
 	{
 		registerMember( info.layout, name, ref, info.accessLvl, info.classID, false /*don't throw if it already exists*/ )
@@ -505,7 +505,7 @@ function accessHelper( info, member )
 
 	// if it is inherited or a data member or been set by virtual, set the flags to the right access level
 	//
-	else if(	'undefined' !== typeof info.layout[ name ] )
+	else if(	info.layout[ name ] !== undefined )
 	{
 		info.layout[ name ].flags = info.accessLvl | ( info.layout[ name ].flags & FLAGS.VIRTUAL )
 
@@ -567,7 +567,7 @@ function inherit( info )
 
 			// if we don't have this one yet, inherit it
 			//
-			else if( 'undefined' === typeof info.layout[ key ] )
+			else if( info.layout[ key ] === undefined )
 			{
 				info.layout[ key ] = layoutObj[ key ]
 				info.layout[ key ].flags = layoutObj[ key ].flags  &  ~FLAGS.VIRTUAL
@@ -591,7 +591,7 @@ function inherit( info )
 				   virtuals.hasOwnProperty( method )
 
 				&& (
-						   'undefined' === typeof layoutObj[ method ]
+						   layoutObj[ method ] === undefined
 						|| layoutObj[ method ].flags & FLAGS.VIRTUAL
 					)
 			)
@@ -757,7 +757,7 @@ function findParent( id, classID )
 
 function registerMember( layout, name, reference, flags, ownerClass, throw_ )
 {
-	if( 'undefined' === typeof layout[ name ] || !throw_ )
+	if( layout[ name ] === undefined || !throw_ )
 
 		layout[ name ] = { flags: flags, reference: reference, ownerClass: ownerClass }
 
