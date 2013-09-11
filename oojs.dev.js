@@ -193,6 +193,7 @@ function ClassMeta( namespace, Static, name, id, iface )
 	this.allBases          = []
 	this.accessibleBases   = []
 	this.inaccessibleBases = []
+	this.friends           = []
 	this.staticLayout      = new ClassLayout( Static.ooID, "staticLayout"   )
 	this.instanceLayout    = new ClassLayout( Static.ooID, "instanceLayout" )
 	this.layoutInstance    = null
@@ -226,13 +227,16 @@ function setupClass( callerNamespace, sub, bases )
 
 	function Static(){}
 
+
 	Object.defineProperty( Static, "Public"            , { value: Public             } )
 	Object.defineProperty( Static, "Protected"         , { value: Protected          } )
 	Object.defineProperty( Static, "Private"           , { value: Private            } )
+	Object.defineProperty( Static, "Friends"           , { value: Friends            } )
 	Object.defineProperty( Static, "getPrivateInstance", { value: getPrivateInstance } )
 
 	Object.defineProperty( Static, "ooID", { value: uid()       } )
 	Object.defineProperty( subCl , "ooID", { value: Static.ooID } )
+
 
 	// makes your life easier when debugging things
 	//
@@ -242,6 +246,7 @@ function setupClass( callerNamespace, sub, bases )
 		, "toString"
 		, { value: function toString(){ return "function Static(){ /*" + sub + "*/ }" } }
 	)
+
 
 	Object.defineProperty
 	(
@@ -322,12 +327,12 @@ function setupClass( callerNamespace, sub, bases )
 
 	// TODO: test what prototype is if there is no base and on IFace do we end up with Public, ...?
 
-	Object.defineProperty( subCl.prototype, "constructor", { configurable: true, value: subCl      } )
-	Object.defineProperty( subCl.prototype, "Public"     , { configurable: true, value: Public     } )
-	Object.defineProperty( subCl.prototype, "Protected"  , { configurable: true, value: Protected  } )
-	Object.defineProperty( subCl.prototype, "Private"    , { configurable: true, value: Private    } )
-	Object.defineProperty( subCl.prototype, "Super"      , { configurable: true, value: Super      } )
-	Object.defineProperty( subCl.prototype, "Virtual"    , { configurable: true, value: Virtual    } )
+	Object.defineProperty( subCl.prototype, "constructor", { configurable: true, value: subCl     } )
+	Object.defineProperty( subCl.prototype, "Public"     , { configurable: true, value: Public    } )
+	Object.defineProperty( subCl.prototype, "Protected"  , { configurable: true, value: Protected } )
+	Object.defineProperty( subCl.prototype, "Private"    , { configurable: true, value: Private   } )
+	Object.defineProperty( subCl.prototype, "Super"      , { configurable: true, value: Super     } )
+	Object.defineProperty( subCl.prototype, "Virtual"    , { configurable: true, value: Virtual   } )
 
 
 	// is the interface which will be returned by the constructor of the class
@@ -389,27 +394,58 @@ function Protected(){        accessModifier.call( this, arguments, FLAGS.PROTECT
 function Private  (){        accessModifier.call( this, arguments, FLAGS.PRIVATE   ) }
 
 
+// Set the classes that are allowed to access the private object
+//
+function Friends()
+{
+	var classMeta = classes[ instances[ this.ooID ].classID ]
+
+	// prevent cheating since we rely on ooID
+	//
+	if( this !== classMeta.Static )
+
+		return
+
+
+	classMeta.friends = [].concat( Array.prototype.slice.call( arguments, 0, arguments.length ) )
+}
+
+
 // Allow access to the private instance within a class if you have the interface
 //
 function getPrivateInstance( iFace )
 {
 	var parent
 
-	// prevent cheating
+	// prevent cheating since we rely on ooID
 	//
-	if( this !== classes[ instances[ this.ooID ].classID ].Static )
+	if
+	(
+			this   !==  classes[ instances[ this.ooID ].classID ].Static
+		|| iFace  !==  instances[ iFace.ooID ].iFace
+
+	)
 
 		return null
 
 
+	// find the private object and support getting our private object from a subclass iFace
+	//
 	if( ( parent = findParent( iFace.ooID, this.ooID ) ) )
 
 		return instances[ parent ]._this
 
 
-	else
+	// enable friend classes
+	//
+	for( var i = classes[ instances[ iFace.ooID ].classID ].friends.length - 1; i >= 0; --i )
 
-		return null
+		if( classes[ instances[ iFace.ooID ].classID ].friends[ i ] === classes[ instances[ this.ooID ].classID ].name )
+
+			return instances[ iFace.ooID ]._this
+
+
+	return null
 }
 
 
@@ -767,12 +803,14 @@ function accessModifier( newMembers, accessLvl )
 	}
 
 
+
 	// set the actual accessor properties
 	// no need to do this with virtual, because virtual is always wrapped in Private, Protected or Public
 	//
 	if( FLAGS.VIRTUAL !== accessLvl )
 
 		info.layout.each( createAccessors, this, info )
+
 
 
 

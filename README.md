@@ -198,7 +198,7 @@ This section explains the design choices of and functioning of OoJs. In brief th
 -  one feature is currently incomplete. It's related to the property .BaseName which will be available on your private object of a Derived class and which will allow you to access Base versions of members. The current implementation only provides .BaseName for your direct parent, and not for ancestors higher up the chain.
 -  there is currently no clone utility function provided with OoJs. The problem being I haven't found a simple way to determine which properties should be deep copied and which not. What if someone writes (and they can, so they will): this.myWindow = window. Deep copying a data member like that would be a royal disaster... You will have to provide a copy constructor dealing with the right properties if you want this
 -  I haven't tested whether it works well to inherit from non-OoJs bases. Say you could subclass "Function" to generate functions, but I haven't tested fancy stuff like that. (Your objects inherit the prototype of your base, so with most stuff it should be fine)
--  classes that inherit from one another have to live in the same namespace
+-  classes that inherit from one another have to live in the same namespace (for now)
 
 If you are using OoJs and there's stuff you can't do due to the limitations, please file an issue here at github and/or start a bounty at [bountysource](https://bountysource.com) and I'll do my best to make time for it.
 
@@ -252,6 +252,7 @@ Have a look at [the sample code below](#seeing-it-in-action). Once you get the h
 #### Reserved keywords
 
 OoJs adds certain properties to your object. They will be non-enumerable, but you shouldn't overwrite/delete them regardless.
+
 -  `ooID` (you can use this if you want, read only, to uniquely identify your objects) It is unique for all OoJs objects, not only those in the same class.
 -  `Super`, `Virtual`, `Private`, `Protected`, `Public`
 -  OoJs creates a property with the name of your baseclass on your private object, so you can call baseclass versions of methods, so don't create a property with the name of a class you inherit from.
@@ -271,6 +272,7 @@ OoJs provides the following functions:
   
 
 -  **Static.getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
+-  **Static.Friends( string classname OR an array of string classnames )** of classes which are allowed to call `getPrivateInstance` for interfaces of your class.
   
 -  On your private object, if class Circle inherits from Shape, in Circle, **this.Shape** will be an interface to the Shape parent of your circle, which you can use to call Shape versions of public and protected methods. Currently only available for the direct parent. I should implement that for all ancestors...
 
