@@ -288,6 +288,7 @@ function addProtected()
 
 
 // dummy constructor to pass an array of parameters to another constructor
+// allows passing an array of arguments to a constructor
 //
 function fNewConstr( constructor, aArgs )
 {
@@ -477,14 +478,15 @@ function accessHelper( info, member )
 
 	// if it has been put on the interface before because it was inherited public, but the access level has changed
 	// remove it from the interface
+	// if it hasn't yet been put on, that's fine because the rest of this function will set its accessLvl correctly
 	//
 	if
 	(
 		   info.layout[ name ]        !== undefined
 		&& info.instRec.iFace[ name ] !== undefined
 
-		&& ! ( info.accessLvl & FLAGS.PUBLIC )
-		&& info.layout[ name ].flags & FLAGS.PUBLIC
+		&& !( info.accessLvl            & FLAGS.PUBLIC )
+		&&    info.layout[ name ].flags & FLAGS.PUBLIC
 	)
 	{
 		delete info.instRec.iFace[ name ]
@@ -497,9 +499,8 @@ function accessHelper( info, member )
 	//
 	if
 	(
-		   info.layout[ name ] !== undefined &&  ref  &&  info.layout[ name ].ownerClass !== info.classID
-
-		|| info.layout[ name ] === undefined &&  ref
+		   info.layout[ name ] !== undefined  &&  ref  &&  info.layout[ name ].ownerClass !== info.classID
+		|| info.layout[ name ] === undefined  &&  ref
 	)
 	{
 		registerMember( info.layout, name, ref, info.accessLvl, info.classID, false /*don't throw if it already exists*/ )
@@ -577,7 +578,8 @@ function inherit( info )
 			}
 
 
-			// if we have it already, several baseclasses provide it since we don't yet deal with multiple inheritance, throw
+			// if we have it already but it's not defined in this subclass,
+			// several baseclasses provide it since we don't yet deal with multiple inheritance, throw
 			//
 			else if( info.layout[ key ].ownerClass !== info.classID )
 
