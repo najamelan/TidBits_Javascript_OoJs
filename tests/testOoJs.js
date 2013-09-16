@@ -824,6 +824,36 @@ function accessControl()
 				,  errormsg:     "Sub.protectedStaticSubDM method is not undefined: " +  typeof Sub.protectedStaticSubDM
 									+ ' |~| in: ' + Static._class + '.accessControl'
 			}
+
+
+
+			/// OoJs.getPrivateInstance
+			//
+		,  {
+					message : "   accessing the private instance via Static if you have an interface\n"
+				,  input   : Sub.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.ooID
+				,  expect  : true
+				,  errormsg:     "Sub.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.ooID: " +  Sub.getPrivateStatic().getPrivateInstance( sub ).ooID
+									+ ' |~| in: ' + Static._class + '.runTime\n'
+			}
+
+
+		,  {
+					message : "   accessing the private instance via parent class Static if you have an interface\n"
+				,  input   : SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.getPrivateInstance().SSuper.ooID
+				,  expect  : true
+				,  errormsg:     "SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.SSuper.ooID: " +  SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID
+									+ ' |~| in: ' + Static._class + '.runTime\n'
+			}
+
+
+		,  {
+					message : "   should not be able to access the private instance via Static if you are in a different class\n"
+				,  input   : Sub.getPrivateStatic().getPrivateInstance( ssuper ) === null
+				,  expect  : true
+				,  errormsg:     "Sub.getPrivateStatic().getPrivateInstance( ssuper ) did not equal null: " +  Sub.getPrivateStatic().getPrivateInstance( ssuper )
+									+ ' |~| in: ' + Static._class + '.runTime\n'
+			}
 ]
 
 
@@ -836,7 +866,7 @@ function accessControl()
 }
 
 
-/// Call public methods and try to access private stuff
+/// Make sure accessors are consistent throughout different classes when using the classes
 //
 function runTime()
 {
@@ -1042,32 +1072,6 @@ function runTime()
 									+ ' |~| in: ' + Static._class + '.runTime\n'
 			}
 
-
-		,  {
-					message : "   accessing the private instance via Static if you have an interface\n"
-				,  input   : Sub.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.ooID
-				,  expect  : true
-				,  errormsg:     "Sub.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.ooID: " +  Sub.getPrivateStatic().getPrivateInstance( sub ).ooID
-									+ ' |~| in: ' + Static._class + '.runTime\n'
-			}
-
-
-		,  {
-					message : "   accessing the private instance via parent class Static if you have an interface\n"
-				,  input   : SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.getPrivateInstance().SSuper.ooID
-				,  expect  : true
-				,  errormsg:     "SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.SSuper.ooID: " +  SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID
-									+ ' |~| in: ' + Static._class + '.runTime\n'
-			}
-
-
-		,  {
-					message : "   should not be able to access the private instance via Static if you are in a different class\n"
-				,  input   : Sub.getPrivateStatic().getPrivateInstance( ssuper ) === null
-				,  expect  : true
-				,  errormsg:     "Sub.getPrivateStatic().getPrivateInstance( ssuper ) did not equal null: " +  Sub.getPrivateStatic().getPrivateInstance( ssuper )
-									+ ' |~| in: ' + Static._class + '.runTime\n'
-			}
 	]
 
 
