@@ -191,11 +191,11 @@ This section explains the design choices of and functioning of OoJs. In brief th
 -  you will have to include a class with sugar code (about 7KB) in order to make the magic work
 -  I haven't done performance testing to compare to other models, but it sure isn't the kind of framework to generate thousands of objects, rather use it to create good application design
 -  it's not cryptic, but you'll best still include a link to this readme for people reading your code to understand how it works
--  you can't call a static method on an instance (I don't really know if I find it a good idea to implement that, but I might do for consistence with C++)
--  no friend classes
+-  you can't call a static method on an instance (I don't really know if I find it a good idea to implement that, but I might do for consistency with C++)
+-  no friend classes (for the moment)
 -  no multiple inheritance (for the moment)
 -  no possibility to set a standard access level when inheriting from a class (where C++ allows you to do "class A : protected B"), however you can override the access level on an indivitual basis for your class members.
--  one feature is currently incomplete. It's related to the property .BaseName which will be available on your private object of a Derived class and which will allow you to call Base versions of methods. The current implementation only provides .BaseName for your direct parent, and not for ancestors higher up the chain.
+-  one feature is currently incomplete. It's related to the property .BaseName which will be available on your private object of a Derived class and which will allow you to access Base versions of members. The current implementation only provides .BaseName for your direct parent, and not for ancestors higher up the chain.
 -  there is currently no clone utility function provided with OoJs. The problem being I haven't found a simple way to determine which properties should be deep copied and which not. What if someone writes (and they can, so they will): this.myWindow = window. Deep copying a data member like that would be a royal disaster... You will have to provide a copy constructor dealing with the right properties if you want this
 -  I haven't tested whether it works well to inherit from non-OoJs bases. Say you could subclass "Function" to generate functions, but I haven't tested fancy stuff like that. (Your objects inherit the prototype of your base, so with most stuff it should be fine)
 -  classes that inherit from one another have to live in the same namespace
@@ -255,7 +255,7 @@ OoJs adds certain properties to your object. They will be non-enumerable, but yo
 -  `ooID` (you can use this if you want, read only, to uniquely identify your objects) It is unique for all OoJs objects, not only those in the same class.
 -  `Super`, `Virtual`, `Private`, `Protected`, `Public`
 -  OoJs creates a property with the name of your baseclass on your private object, so you can call baseclass versions of methods, so don't create a property with the name of a class you inherit from.
--  `Static.getPrivateInstance` is a property provided by OoJs. It is safe to create a property with that name on an instance, but not on static level.
+-  `Static.getPrivateInstance` is a property provided by OoJs. It is safe (but not recommended) to create a property with that name on an instance, but not on static level.
 
 #### API
 
@@ -270,7 +270,7 @@ OoJs provides the following functions:
   **parameters**: an object created by a class setup with OoJs
   
 
--  On your Static, there is a method **getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class, use this. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
+-  **Static.getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
   
 -  On your private object, if class Circle inherits from Shape, in Circle, **this.Shape** will be an interface to the Shape parent of your circle, which you can use to call Shape versions of public and protected methods. Currently only available for the direct parent. I should implement that for all ancestors...
 
@@ -324,14 +324,14 @@ A child class instance calls Super() before finishing setting up, and thus a vir
 
 I would like to encourage people to call Object.seal() on their objects when the declaration is over. However this makes your class final when you seal the public interface (eg. it won't be possible to subclass it) and breaks virtual methods if you seal your private object. That's because when a subclass instance is created, the public interface of the parent is being extended to have the protected properties as well as the public ones (so you can call parent versions as this.ParentClass.protectedMethod()). This happens when the subclass declaration is complete, and thus the parent interface is already created. If it's sealed, that's no longer possible. With virtual methods, the pointer on this get changed by subclasses to point to their overridden versions. That is no longer possible if the private object is sealed.
 
-In conclusion, if your class has no virtual methods, you can safely seal your private object. This will protect you against spelling mistakes in setter for example.
+In conclusion, if your class has no virtual methods, you can safely seal your private object. This will protect you against spelling mistakes in setters for example.
 
-If you seal your interface and you have protected members, your class becomes final. You can work around this by passing a parameter in your constructor to distinguish between when it is safe to seal and when not. Since sealing is logic, not declaration you should do it after calling Private/Protected/Public and so it can happen conditionally. If for example in your subclasses you call this.Super( "noseal" ), you can seal it when a user instanciates directly, and thus doesn't pass this parameter.
+If you seal your interface and you have protected members, your class becomes final. You can work around this by passing a parameter in your constructor to distinguish between when it is safe to seal and when not. Since sealing is logic, not declaration you should do it after calling Private/Protected/Public and so it can happen conditionally. Ex: If in your subclasses you call this.Super( "noseal" ), you can seal it when a client instanciates directly, and thus doesn't pass this parameter.
 
 
 #### Do not try to deep copy objects or extend them
 
-It won't work as expected. You will have methods that work on the private part of the object you copy and so it won't work as expected. I am planning to provide a clone function, but it is not easy. If a user sets a data member to point to some outside object (eg. window), it would be quite bad to deep copy that. For now, it is best you write your own copy constructor which will make sure that all data members that need to be deep copied will be so.
+It won't work as expected. You will have methods that work on the private part of the object you copy and so it won't work as expected. If a user sets a data member to point to some outside object (eg. window), it would be quite bad to deep copy that. It is best you write your own copy constructor which will make sure that all data members that need to be deep copied will be so.
 
 
 
