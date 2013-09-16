@@ -278,7 +278,7 @@ OoJs provides the following functions:
 
 -  **this.Super( parameters )** allows you to send parameters to your parent class constructor. You should call this before calling Public/Private/Protected.
 
--  On both static and instance you will have **.Public**, **.Private**, **.Protected** which take your members as parameters. Methods should be passed as references (their name without quotes), whereas data members should be their name as strings. You can override the access level of parent members, in which case you should pass them as strings. These methods also accept the return value of **this.Virtual** as a parameter. For instances, .Public will return an interface which you should return from your constructor.
+-  On both static and instance you will have **.Public**, **.Private**, **.Protected** which take your members as parameters. Methods should be passed as references (their name without quotes), whereas data members should be their name as strings. You can override the access level of parent members, in which case you should pass them as strings in the form of: "Base.membername". These methods also accept the return value of **this.Virtual** as a parameter. For instances, this.Public will return an interface which you should return from your constructor.
 
 -  On your instance you can call **this.Virtual**. This method takes method references as parameters. You can call this in the parameter list of the above methods so you don't have to write your method names twice.
 

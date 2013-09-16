@@ -35,6 +35,7 @@ function ClassMeta( namespace, Static, name, id, iface )
 	this.name           = name
 	this.id             = id
 	this.bases          = []
+	this.overrideAccess = { staticLayout: {}, instanceLayout: {} }
 	this.staticLayout   = null
 	this.instanceLayout = null
 	this.layoutInstance = null
@@ -472,8 +473,42 @@ function storePrivate( info )
 
 function accessHelper( info, member )
 {
-	var ref   = 'function' === typeof member ? member : null
-	var name  = 'string'   === typeof member ? member : /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
+	var ref, name, scope = ""
+
+
+	if( 'function' === typeof member )
+	{
+		name = /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
+		ref  = member
+	}
+
+	else if( 'string'   === typeof member )
+	{
+		// Do scope resolution
+		//
+		var split = member.split( '.' )
+
+		name  = split.pop()
+		scope = split.pop()
+
+		if( split.length ) throw new Error( "More than one dot found in: " + member )
+
+		// format 'Super.someMember' only exists to change the accessLvl of an inherited property
+		//
+		if( scope )
+		{
+			var overRides = info.classMeta.overrideAccess[ info.layoutType ]
+
+			overRides[ scope ]         = overRides[ scope ] || []
+			overRides[ scope ][ name ] = info.accessLvl
+		}
+
+		// allow scope to be used in error messages later otherwise it would give 'undefined'
+		//
+		else
+
+			scope = ""
+	}
 
 
 	// if it has been put on the interface before because it was inherited public, but the access level has changed
@@ -508,19 +543,28 @@ function accessHelper( info, member )
 
 
 	// if it is inherited or a data member or been set by virtual, set the flags to the right access level
+	// if it's from this class and scope is not another class
+	// if it's inherited and scope points to the right class
 	//
-	else if(	info.layout[ name ] !== undefined )
+	else if
+	(
+			info.layout[ name ] !== undefined
+
+		&& (
+					scope === ""  &&   info.layout[ name ].ownerClass === info.classID
+
+				|| scope === classes[ info.layout[ name ].ownerClass ].name
+			)
+	)
 	{
 		info.layout[ name ].flags = info.accessLvl | ( info.layout[ name ].flags & FLAGS.VIRTUAL )
-
-
 	}
 
 	// we don't know what it is
 	//
 	else
 
-		throw new Error( "Couldn't find definition of member: " + name + " in class: " + info.classMeta.name )
+		throw new Error( "Couldn't find definition of member: " + ( scope ? scope + '.' : "" ) + name + " in class: " + info.classMeta.name )
 
 
 

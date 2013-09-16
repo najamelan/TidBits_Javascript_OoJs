@@ -1152,7 +1152,7 @@ function inheritance()
 			// Changing access levels
 			//
 		,  {
-					message : "   make an inherited super data member protected\n"
+					message : "   make an inherited static super data member protected\n"
 				,  input   : Sub.publicSSuperPrimitiveDM === undefined
 				,  expect  : true
 
@@ -1162,13 +1162,54 @@ function inheritance()
 
 
 		,  {
-					message : "   make an inherited super data member public\n"
-				,  input   : Subber.publicSSuperPrimitiveDM !== undefined
+					message : "   verify the access from within the class to the now protected member\n"
+				,  input   : Sub.getPrivateStatic().publicSSuperPrimitiveDM === false
 				,  expect  : true
 
-				,  errormsg:     "Subber.publicSSuperPrimitiveDM is undefined: " +  Subber.publicSSuperPrimitiveDM
+				,  errormsg:     "Sub.getPrivateStatic().publicSSuperPrimitiveDM is not false: " +  typeof Sub.getPrivateStatic().publicSSuperPrimitiveDM
 									+ ' |~| in: ' + Static._class + '.inheritance'
 			}
+
+
+		,  {
+					message : "   make an inherited protected static super data member public\n"
+				,  input   : Subber.publicSSuperPrimitiveDM === false
+				,  expect  : true
+
+				,  errormsg:     "Subber.publicSSuperPrimitiveDM is not false: " +  Subber.publicSSuperPrimitiveDM
+									+ ' |~| in: ' + Static._class + '.inheritance'
+			}
+
+
+		,  {
+					message : "   make an inherited instance public method private\n"
+				,  input   : sub.publicSSuperMethodChangeAccess === undefined
+				,  expect  : true
+
+				,  errormsg:     "sub.publicSSuperMethodChangeAccess is not undefined: " +  sub.publicSSuperMethodChangeAccess
+									+ ' |~| in: ' + Static._class + '.inheritance'
+			}
+
+
+		,  {
+					message : "   make sure it's availble from within\n"
+				,  input   : sub.getPrivateInstance().publicSSuperMethodChangeAccess() === "SSuper version"
+				,  expect  : true
+
+				,  errormsg:     "sub.getPrivateInstance().publicSSuperMethodChangeAccess() is not 'SSuper version': " +  sub.getPrivateInstance().publicSSuperMethodChangeAccess()
+									+ ' |~| in: ' + Static._class + '.inheritance'
+			}
+
+
+		,  {
+					message : "   make sure it's not inherited in Subber\n"
+				,  input   : subber.getPrivateInstance().publicSSuperMethodChangeAccess === undefined
+				,  expect  : true
+
+				,  errormsg:     "subber.getPrivateInstance().publicSSuperMethodChangeAccess is not undefined: " +  subber.getPrivateInstance().publicSSuperMethodChangeAccess
+									+ ' |~| in: ' + Static._class + '.inheritance'
+			}
+
 
 
 			// virtual functions

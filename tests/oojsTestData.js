@@ -99,6 +99,7 @@ if( 'undefined' !== typeof module )
 						, setSSuperInstanceCounter
 						, getPrivateInstance
 						, publicCallVirtualMethod
+						, publicSSuperMethodChangeAccess
 						, getID
 
 						,  this.Virtual
@@ -108,6 +109,12 @@ if( 'undefined' !== typeof module )
 
 						, "publicSSuperInstanceDM"
 					)
+	}
+
+
+	function publicSSuperMethodChangeAccess()
+	{
+		return "SSuper version"
 	}
 
 
@@ -255,7 +262,7 @@ if( 'undefined' !== typeof module )
 
 	Static.Protected
 	(
-		"publicSSuperPrimitiveDM"
+		"SSuper.publicSSuperPrimitiveDM"
 	)
 
 
@@ -294,6 +301,8 @@ if( 'undefined' !== typeof module )
 				(
 					privateVirtualMethod
 				)
+
+			,  "SSuper.publicSSuperMethodChangeAccess"
 		)
 
 
@@ -459,7 +468,7 @@ if( 'undefined' !== typeof module )
 	Static.Public
 	(
 		  getPrivateStatic
-		, "publicSSuperPrimitiveDM"
+		, "SSuper.publicSSuperPrimitiveDM"
 	)
 
 

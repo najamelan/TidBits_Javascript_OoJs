@@ -1,0 +1,20 @@
+v.xx
+----
+
+change 1 BREAKS COMPATIBILITY WITH PRIOR VERSIONS
+
+1. Changing the access level of inherited members now needs to be done as: this/Static.Private( "Base.method", "Base.datamember" )
+   This assures compatibility with C++ because it allows you to have members in subclasses with the same name as members in base classes and prepares ground for allowing an access level specifier at class level for inheritance.
+
+
+
+13.08.20-alpha
+--------------
+
+1. add to README that you can't access static members through instances
+
+
+13.08.14-alpha
+----------------
+
+1. First working version
