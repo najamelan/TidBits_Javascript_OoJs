@@ -215,6 +215,9 @@ function Super()
 //
 function _Super()
 {
+	// if we are being called on a Static object, we should just return.
+	// Static will have .prototype set.
+	//
 	var constructor = this.prototype ? this.prototype.constructor : this.constructor
 
 	// if it is not an instance, no business here
@@ -554,7 +557,7 @@ function inherit( info )
 		//
 		for( var key in layoutObj )
 		{
-			// if it is private, don't inherit
+			// if it is private or it's not an own property, don't inherit
 			//
 			if
 			(
@@ -569,7 +572,7 @@ function inherit( info )
 			//
 			else if( info.layout[ key ] === undefined )
 			{
-				info.layout[ key ] = layoutObj[ key ]
+				info.layout[ key ]       = layoutObj[ key ]
 				info.layout[ key ].flags = layoutObj[ key ].flags  &  ~FLAGS.VIRTUAL
 			}
 
