@@ -1,4 +1,4 @@
-/**@preserve TidBits OoJs - version: 13.08.14-alpha
+/**@preserve TidBits OoJs - version: 13.08.20-alpha
  * README: https://github.com/najamelan/TidBits_Javascript_OoJs
  */
 
