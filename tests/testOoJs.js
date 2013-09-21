@@ -85,6 +85,7 @@ function typeChecking()
 {
 	this.message += "\n\n Type checking\n\n"
 
+	var location = ' |~| in: ' + Static._class + ".typeChecking\n"
 
 	var sub    = new Sub
 	var ssuper = new SSuper
@@ -98,7 +99,7 @@ function typeChecking()
 				,  input   : ssuper instanceof SSuper
 				,  expect  : true
 
-				,  errormsg:     "super is not instanceof SSuper |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:     "super is not instanceof SSuper |~| in: " + location
 			}
 
 
@@ -107,7 +108,7 @@ function typeChecking()
 				,  input   : ssuper instanceof Sub
 				,  expect  : false
 
-				,  errormsg:   "super is instanceof Sub |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "super is instanceof Sub |~| in: " + location
 			}
 
 
@@ -116,7 +117,7 @@ function typeChecking()
 				,  input   : sub instanceof Sub
 				,  expect  : true
 
-				,  errormsg:     "sub is not instanceof Sub |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:     "sub is not instanceof Sub |~| in: " + location
 			}
 
 
@@ -124,7 +125,7 @@ function typeChecking()
 					message : "   sub            should     be an instance of SSuper\n"
 				,  input   : sub instanceof SSuper
 				,  expect  : true
-				,  errormsg: "sub is not instanceof SSuper" + ' |~| in: ' + Static._class + '.typeChecking\n'
+				,  errormsg: "sub is not instanceof SSuper" + location
 			}
 
 
@@ -133,7 +134,7 @@ function typeChecking()
 				,  input   : SSuper instanceof Object
 				,  expect  : true
 
-				,  errormsg:   "SSuper is instanceof Object |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "SSuper is instanceof Object |~| in: " + location
 			}
 
 
@@ -142,7 +143,7 @@ function typeChecking()
 				,  input   : Sub instanceof Object
 				,  expect  : true
 
-				,  errormsg:   "Sub is instanceof Object |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "Sub is instanceof Object |~| in: " + location
 		   }
 
 
@@ -151,7 +152,7 @@ function typeChecking()
 				,  input   : ssuper instanceof Object
 				,  expect  : true
 
-				,  errormsg:   "super is instanceof Object |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "super is instanceof Object |~| in: " + location
 			}
 
 
@@ -160,7 +161,7 @@ function typeChecking()
 				,  input   : sub instanceof Object
 				,  expect  : true
 
-				,  errormsg:   "sub is instanceof Object |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "sub is instanceof Object |~| in: " + location
 			}
 
 
@@ -169,7 +170,7 @@ function typeChecking()
 				,  input   : SSuper instanceof Sub
 				,  expect  : false
 
-				,  errormsg:   "SSuper is instanceof Sub |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "SSuper is instanceof Sub |~| in: " + location
 			}
 
 
@@ -178,7 +179,7 @@ function typeChecking()
 				,  input   : Object instanceof SSuper
 				,  expect  : false
 
-				,  errormsg:   "Object is instanceof SSuper |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "Object is instanceof SSuper |~| in: " + location
 			}
 
 
@@ -187,7 +188,7 @@ function typeChecking()
 				,  input   : Object instanceof Sub
 				,  expect  : false
 
-				,  errormsg:   "Object is instanceof Sub |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "Object is instanceof Sub |~| in: " + location
 			}
 
 
@@ -196,7 +197,7 @@ function typeChecking()
 				,  input   : object instanceof SSuper
 				,  expect  : false
 
-				,  errormsg:   "new Object() is instanceof SSuper |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "new Object() is instanceof SSuper |~| in: " + location
 			}
 
 
@@ -205,7 +206,7 @@ function typeChecking()
 				,  input   : object instanceof Sub
 				,  expect  : false
 
-				,  errormsg:   "new Object() is instanceof Sub |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "new Object() is instanceof Sub |~| in: " + location
 			}
 
 
@@ -214,7 +215,7 @@ function typeChecking()
 				,  input   : typeof SSuper === 'function'
 				,  expect  : true
 
-				,  errormsg:   "SSuper is not a function, but: " + typeof SSuper + " |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "SSuper is not a function, but: " + typeof SSuper + " |~| in: " + location
 			}
 
 
@@ -223,7 +224,7 @@ function typeChecking()
 				,  input   : typeof Sub === 'function'
 				,  expect  : true
 
-				,  errormsg:   "Sub is not a function, but: " + typeof Sub + " |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "Sub is not a function, but: " + typeof Sub + " |~| in: " + location
 			}
 
 
@@ -232,7 +233,7 @@ function typeChecking()
 				,  input   : typeof SSuper.getPrivateStatic() === 'function'
 				,  expect  : true
 
-				,  errormsg:   "SSuper.getPrivateStatic() is not a function, but: " + typeof SSuper.getPrivateStatic() + " |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "SSuper.getPrivateStatic() is not a function, but: " + typeof SSuper.getPrivateStatic() + " |~| in: " + location
 			}
 
 
@@ -241,7 +242,7 @@ function typeChecking()
 				,  input   : typeof Sub.getPrivateStatic() === 'function'
 				,  expect  : true
 
-				,  errormsg:   "Sub.getPrivateStatic() is not a function, but: " + typeof Sub.getPrivateStatic() + " |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "Sub.getPrivateStatic() is not a function, but: " + typeof Sub.getPrivateStatic() + " |~| in: " + location
 			}
 
 
@@ -250,7 +251,7 @@ function typeChecking()
 				,  input   : TidBits.OoJs.typeOf( ssuper ) === 'SSuper'
 				,  expect  : true
 
-				,  errormsg:   "ssuper is not a SSuper, but: " + TidBits.OoJs.typeOf( ssuper ) + " |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "ssuper is not a SSuper, but: " + TidBits.OoJs.typeOf( ssuper ) + " |~| in: " + location
 			}
 
 
@@ -259,7 +260,7 @@ function typeChecking()
 				,  input   : TidBits.OoJs.typeOf( sub ) === 'Sub'
 				,  expect  : true
 
-				,  errormsg:   "sub is not a Sub, but: " + TidBits.OoJs.typeOf( sub ) + " |~| in: " + Static._class + ".typeChecking\n"
+				,  errormsg:   "sub is not a Sub, but: " + TidBits.OoJs.typeOf( sub ) + " |~| in: " + location
 			}
 	]
 
@@ -281,6 +282,8 @@ function accessControl()
 {
 	this.message += "\n\n Access Control\n\n"
 
+	var location = ' |~| in: ' + Static._class + '.accessControl\n'
+
 	var sub    = new Sub  ()
 	var ssuper = new SSuper()
 
@@ -293,7 +296,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.staticSSuperPublicMethod() returned: " +  SSuper.staticSSuperPublicMethod()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -303,7 +306,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.staticSubPublicMethod() returned: " +  Sub.staticSubPublicMethod()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -313,7 +316,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "super.instanceSSuperPublicMethod() returned: " +  ssuper.instanceSSuperPublicMethod()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -323,7 +326,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.instanceSubPublicMethod() returned: " +  sub.instanceSubPublicMethod()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -333,7 +336,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.callSSuperStatic() returned: " +  Sub.callSSuperStatic()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -343,7 +346,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.callSSuperInstance() returned: " +  sub.callSSuperInstance()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -353,7 +356,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.staticSSuperPublicMethod() returned: " +  Sub.staticSSuperPublicMethod()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -363,7 +366,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.instanceSSuperPublicMethod() returned: " +  sub.instanceSSuperPublicMethod()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -373,7 +376,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.callSSuperProtectedStatic() returned: " +  Sub.callSSuperProtectedStatic()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -383,7 +386,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.callSSuperProtectedInstance() returned: " +  sub.callSSuperProtectedInstance()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -403,7 +406,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.publicSSuperStaticOptions.lineheight returned: " +  SSuper.publicSSuperStaticOptions.lineheight
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -413,7 +416,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.publicSSuperStaticOptions.lineheight returned: " +  Sub.publicSSuperStaticOptions.lineheight
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -423,7 +426,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.publicSubStaticDM returned: " +  Sub.publicSubStaticDM
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -433,7 +436,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "ssuper.publicSSuperInstanceDM returned: " +  ssuper.publicSSuperInstanceDM
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -443,7 +446,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.publicSSuperInstanceDM returned: " +  sub.publicSSuperInstanceDM
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -453,7 +456,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.publicSubInstanceDM returned: " +  sub.publicSubInstanceDM
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -463,7 +466,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().protectedStaticSSuperDM returned: " +  Sub.getPrivateStatic().protectedStaticSSuperDM
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -473,7 +476,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().protectedInstanceSSuperDM returned: " +  sub.getPrivateInstance().protectedInstanceSSuperDM
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -483,7 +486,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().SSuper.protectedInstanceSSuperDM.a returned: " +  sub.getPrivateInstance().SSuper.protectedInstanceSSuperDM.a
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -493,7 +496,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().SSuper.instanceSSuperPublicMethod() returned: " +  sub.getPrivateInstance().SSuper.instanceSSuperPublicMethod()
-									+ ' |~| in: ' + Static._class + '.accessControl\n'
+									+ location
 			}
 
 
@@ -514,7 +517,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.staticSSuperPrivateMethod method is not undefined: " +  typeof SSuper.staticSubPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -524,7 +527,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.__base__ is not undefined: " +  typeof SSuper.__base__
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -535,7 +538,7 @@ function accessControl()
 
 				,  errormsg:     "ssuper.instanceSSuperPrivateMethod method is not undefined: "
 									+ typeof ssuper.instanceSSuperPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -545,7 +548,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "ssuper.privateSSuperInstanceDM is not undefined: " +  typeof ssuper.privateSSuperInstanceDM
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -555,7 +558,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.staticSubPrivateMethod method is not undefined: " +  typeof Sub.staticSubPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -565,7 +568,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.__base__ is not undefined: " +  typeof Sub.__base__
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -575,7 +578,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.instanceSubPrivateMethod method is not undefined: " +  typeof sub.instanceSubPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -585,7 +588,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.privateSubInstanceDM is not undefined: " +  typeof sub.privateSubInstanceDM
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -595,7 +598,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.staticSSuperProtectedMethod method is not undefined: " +  typeof SSuper.staticSSuperProtectedMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -605,7 +608,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "ssuper.instanceSSuperProtectedMethod is not undefined: " +  typeof ssuper.instanceSSuperProtectedMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -615,7 +618,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.staticSSuperProtectedMethod method is not undefined: " +  typeof Sub.staticSSuperProtectedMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -625,7 +628,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.instanceSSuperProtectedMethod is not undefined: " +  typeof sub.instanceSSuperProtectedMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -637,7 +640,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().staticSSuperPrivateMethod method is not undefined: " +  typeof Sub.getPrivateStatic().staticSSuperPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -647,7 +650,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().instanceSSuperPrivateMethod is not undefined: " +  typeof sub.getPrivateInstance().instanceSSuperPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -657,7 +660,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.accessSSuperStaticPrivateDM() Data Member is not undefined: " +  Sub.accessSSuperStaticPrivateDM()
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -667,7 +670,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.accessInstanceStaticPrivateDM() is not undefined: " +  sub.accessInstanceStaticPrivateDM()
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -677,7 +680,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSubPublicMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSubPublicMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -687,7 +690,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSubPublicMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSubPublicMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -697,7 +700,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSSuperPublicMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSSuperPublicMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -707,7 +710,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSSuperProtectedMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSSuperProtectedMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -717,7 +720,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().staticSSuperPrivateMethod is not undefined: " +  typeof sub.getPrivateInstance().staticSSuperPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -727,7 +730,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSubPrivateMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSubPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -737,7 +740,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSubPublicMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSubPublicMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -747,7 +750,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSSuperPrivateMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSSuperPrivateMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -757,7 +760,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSSuperProtectedMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSSuperProtectedMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -767,7 +770,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().instanceSSuperPublicMethod method is not undefined: " +  typeof Sub.getPrivateStatic().instanceSSuperPublicMethod
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -777,7 +780,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "typeof sub.getPrivateInstance().SSuper.privateSSuperInstanceDM is not undefined: " +  typeof sub.getPrivateInstance().SSuper.privateSSuperInstanceDM
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -792,7 +795,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.protectedStaticSSuperDM method is not undefined: " +  typeof SSuper.protectedStaticSSuperDM
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -802,7 +805,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "ssuper.protectedInstanceSSuperDM method is not undefined: " +  typeof ssuper.protectedInstanceSSuperDM
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -812,7 +815,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "sub.protectedInstanceSSuperDM method is not undefined: " +  typeof sub.protectedInstanceSSuperDM
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -822,7 +825,7 @@ function accessControl()
 				,  expect  : true
 
 				,  errormsg:     "Sub.protectedStaticSubDM method is not undefined: " +  typeof Sub.protectedStaticSubDM
-									+ ' |~| in: ' + Static._class + '.accessControl'
+									+ location
 			}
 
 
@@ -834,7 +837,7 @@ function accessControl()
 				,  input   : Sub.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.ooID
 				,  expect  : true
 				,  errormsg:     "Sub.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.ooID: " +  Sub.getPrivateStatic().getPrivateInstance( sub ).ooID
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -843,7 +846,7 @@ function accessControl()
 				,  input   : SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.SSuper.ooID
 				,  expect  : true
 				,  errormsg:     "SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.SSuper.ooID: " +  SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID + ", " + sub.SSuper.ooID + " (sub.ooID: " + sub.ooID + ")"
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -852,7 +855,7 @@ function accessControl()
 				,  input   : Sub.getPrivateStatic().getPrivateInstance( ssuper ) === null
 				,  expect  : true
 				,  errormsg:     "Sub.getPrivateStatic().getPrivateInstance( ssuper ) did not equal null: " +  Sub.getPrivateStatic().getPrivateInstance( ssuper )
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 ]
 
@@ -872,6 +875,8 @@ function runTime()
 {
 	this.message += "\n\n Run time scenarios\n\n"
 
+	var location = ' |~| in: ' + Static._class + '.runTime\n'
+
 	var subber = new Subber()
 	var sub    = new Sub   ()
 	var sub2   = new Sub   ()
@@ -886,7 +891,7 @@ function runTime()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.getSSuperStaticCounter() returned (should have been 5): " +  SSuper.getSSuperStaticCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -896,7 +901,7 @@ function runTime()
 				,  expect  : true
 
 				,  errormsg:     "super.getSSuperInstanceCounter() returned (should have been 3): " +  ssuper.getSSuperInstanceCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -913,7 +918,7 @@ function runTime()
 				,  expect  : 6
 
 				,  errormsg:     "SSuper.getSSuperStaticCounter() returned (should have been 6): " +  SSuper.getSSuperStaticCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -930,7 +935,7 @@ function runTime()
 					,  expect  : 4
 
 				,  errormsg:     "super.getSSuperInstanceCounter() returned (should have been 4): " +  ssuper.getSSuperInstanceCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -940,7 +945,7 @@ function runTime()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getSSuperStaticCounter() returned (should have been 6): " +  Sub.getSSuperStaticCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -950,7 +955,7 @@ function runTime()
 				,  expect  : true
 
 				,  errormsg:     "sub.getSSuperInstanceCounter() returned (should have been 3): " +  sub.getSSuperInstanceCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -967,7 +972,7 @@ function runTime()
 				,  expect  : 7
 
 				,  errormsg:     "SSuper.getSSuperStaticCounter() returned (should have been 7): " +  Sub.getSSuperStaticCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -984,7 +989,7 @@ function runTime()
 					,  expect  : 4
 
 				,  errormsg:     "sub.getSSuperInstanceCounter() returned (should have been 4): " +  sub.getSSuperInstanceCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -1001,7 +1006,7 @@ function runTime()
 					,  expect  : 4
 
 				,  errormsg:     "subber.getSSuperInstanceCounter() returned (should have been 4): " +  subber.getSSuperInstanceCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -1018,7 +1023,7 @@ function runTime()
 				,  expect  : 8
 
 				,  errormsg:     "SSuper.getSSuperProtectedStaticCounter() returned (should have been 8): " +  Sub.getSSuperStaticCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -1035,7 +1040,7 @@ function runTime()
 				,  expect  : 4
 
 				,  errormsg:     "sub2.getSSuperInstanceCounter() returned (should have been 4): " +  sub2.getSSuperInstanceCounter()
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -1052,7 +1057,7 @@ function runTime()
 				,  expect  : 120
 
 				,  errormsg:     "SSuper.getPrivateStatic().publicSSuperStaticOptions.width returned (should have been 120): " +  SSuper.getPrivateStatic().publicSSuperStaticOptions.width
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 
@@ -1069,7 +1074,7 @@ function runTime()
 				,  expect  : 240
 
 				,  errormsg:     "SSuper.publicSSuperStaticOptions.width returned (should have been 240): " +  SSuper.publicSSuperStaticOptions.width
-									+ ' |~| in: ' + Static._class + '.runTime\n'
+									+ location
 			}
 
 	]
@@ -1091,6 +1096,7 @@ function inheritance()
 {
 	this.message += "\n\n Inheritance\n\n"
 
+	var location = ' |~| in: ' + Static._class + '.inheritance\n'
 
 	var subber = new Subber
 	var sub    = new Sub   ( "sub-instance" )
@@ -1104,7 +1110,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().publicSubStaticDM returned: " +  Sub.getPrivateStatic().publicSubStaticDM
-									+ ' |~| in: ' + Static._class + '.inheritance\n'
+									+ location
 			}
 
 
@@ -1114,7 +1120,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.getPrivateStatic().privateSSuperStaticDM returned: " +  SSuper.getPrivateStatic().privateSSuperStaticDM
-									+ ' |~| in: ' + Static._class + '.inheritance\n'
+									+ location
 			}
 
 
@@ -1124,7 +1130,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "ssuper.getPrivateInstance().constructor returned: " +  ssuper.getPrivateInstance().constructor
-									+ ' |~| in: ' + Static._class + '.inheritance\n'
+									+ location
 			}
 
 
@@ -1134,7 +1140,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().constructor returned: " +  sub.getPrivateInstance().constructor
-									+ ' |~| in: ' + Static._class + '.inheritance\n'
+									+ location
 			}
 
 
@@ -1144,7 +1150,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "sub.getID() didn't return 'sub-instance' but: " +  sub.getID()
-									+ ' |~| in: ' + Static._class + '.inheritance\n'
+									+ location
 			}
 
 
@@ -1157,7 +1163,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "Sub.publicSSuperPrimitiveDM is not undefined: " +  typeof Sub.publicSSuperPrimitiveDM
-									+ ' |~| in: ' + Static._class + '.inheritance'
+									+ location
 			}
 
 
@@ -1167,7 +1173,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "SSuper.publicSSuperPrimitiveDM is not false: " +  typeof SSuper.publicSSuperPrimitiveDM
-									+ ' |~| in: ' + Static._class + '.inheritance'
+									+ location
 			}
 
 
@@ -1177,7 +1183,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "Sub.getPrivateStatic().publicSSuperPrimitiveDM is not false: " +  typeof Sub.getPrivateStatic().publicSSuperPrimitiveDM
-									+ ' |~| in: ' + Static._class + '.inheritance'
+									+ location
 			}
 
 
@@ -1187,7 +1193,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "Subber.publicSSuperPrimitiveDM is not false: " +  Subber.publicSSuperPrimitiveDM
-									+ ' |~| in: ' + Static._class + '.inheritance'
+									+ location
 			}
 
 
@@ -1197,7 +1203,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "sub.publicSSuperMethodChangeAccess is not undefined: " +  sub.publicSSuperMethodChangeAccess
-									+ ' |~| in: ' + Static._class + '.inheritance'
+									+ location
 			}
 
 
@@ -1207,7 +1213,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "sub.getPrivateInstance().publicSSuperMethodChangeAccess() is not 'SSuper version': " +  sub.getPrivateInstance().publicSSuperMethodChangeAccess()
-									+ ' |~| in: ' + Static._class + '.inheritance'
+									+ location
 			}
 
 
@@ -1217,7 +1223,7 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "subber.getPrivateInstance().publicSSuperMethodChangeAccess is not undefined: " +  subber.getPrivateInstance().publicSSuperMethodChangeAccess
-									+ ' |~| in: ' + Static._class + '.inheritance'
+									+ location
 			}
 
 
@@ -1232,7 +1238,7 @@ function inheritance()
 
 				,  errormsg:     "ssuper.publicCallVirtualMethod() did not return 'SSuper version', but: "
 				              +  ssuper.publicCallVirtualMethod()
-								  + ' |~| in: ' + Static._class + '.inheritance'
+								  + location
 			}
 
 
@@ -1243,7 +1249,7 @@ function inheritance()
 
 				,  errormsg:     "sub.publicCallVirtualMethod() did not return 'Sub version', but: "
 				              +  sub.publicCallVirtualMethod()
-								  + ' |~| in: ' + Static._class + '.inheritance'
+								  + location
 			}
 
 
@@ -1254,7 +1260,7 @@ function inheritance()
 
 				,  errormsg:     "subber.publicCallVirtualMethod() did not return 'Subber version', but: "
 				              +  subber.publicCallVirtualMethod()
-								  + ' |~| in: ' + Static._class + '.inheritance'
+								  + location
 			}
 
 
@@ -1265,7 +1271,7 @@ function inheritance()
 
 				,  errormsg:     "ssuper.publicVirtualMethod() did not return 'SSuper version of publicVirtual', but: "
 				              +  ssuper.publicVirtualMethod()
-								  + ' |~| in: ' + Static._class + '.inheritance'
+								  + location
 			}
 
 
@@ -1276,7 +1282,7 @@ function inheritance()
 
 				,  errormsg:     "sub.publicVirtualMethod() did not return 'SSuper version of publicVirtual', but: "
 				              +  sub.publicVirtualMethod()
-								  + ' |~| in: ' + Static._class + '.inheritance'
+								  + location
 			}
 
 
@@ -1287,7 +1293,7 @@ function inheritance()
 
 				,  errormsg:     "subber.publicVirtualMethod() did not return 'Subber version of publicVirtual', but: "
 				              +  subber.publicVirtualMethod()
-								  + ' |~| in: ' + Static._class + '.inheritance'
+								  + location
 			}
 
 
@@ -1298,7 +1304,7 @@ function inheritance()
 
 				,  errormsg:     "subber.getPrivateInstance().Sub.publicVirtualMethod() did not return 'SSuper version of publicVirtual', but: "
 				              +  subber.getPrivateInstance().Sub.publicVirtualMethod()
-								  + ' |~| in: ' + Static._class + '.inheritance'
+								  + location
 			}
 
 	]
