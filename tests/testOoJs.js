@@ -840,9 +840,9 @@ function accessControl()
 
 		,  {
 					message : "   accessing the private instance via parent class Static if you have an interface\n"
-				,  input   : SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.getPrivateInstance().SSuper.ooID
+				,  input   : SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID === sub.SSuper.ooID
 				,  expect  : true
-				,  errormsg:     "SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.SSuper.ooID: " +  SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID
+				,  errormsg:     "SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID did not equal sub.SSuper.ooID: " +  SSuper.getPrivateStatic().getPrivateInstance( sub ).ooID + ", " + sub.SSuper.ooID + " (sub.ooID: " + sub.ooID + ")"
 									+ ' |~| in: ' + Static._class + '.runTime\n'
 			}
 
@@ -1092,8 +1092,8 @@ function inheritance()
 	this.message += "\n\n Inheritance\n\n"
 
 
-	var sub    = new Sub   ( "sub-instance" )
 	var subber = new Subber
+	var sub    = new Sub   ( "sub-instance" )
 	var ssuper = new SSuper
 
 	var tests =
@@ -1157,6 +1157,16 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "Sub.publicSSuperPrimitiveDM is not undefined: " +  typeof Sub.publicSSuperPrimitiveDM
+									+ ' |~| in: ' + Static._class + '.inheritance'
+			}
+
+
+		,  {
+					message : "   make sure it's still public in SSuper\n"
+				,  input   : SSuper.publicSSuperPrimitiveDM === false
+				,  expect  : true
+
+				,  errormsg:     "SSuper.publicSSuperPrimitiveDM is not false: " +  typeof SSuper.publicSSuperPrimitiveDM
 									+ ' |~| in: ' + Static._class + '.inheritance'
 			}
 
@@ -1292,7 +1302,6 @@ function inheritance()
 			}
 
 	]
-
 
 
 	for( var i = 0; i < tests.length; i++ )

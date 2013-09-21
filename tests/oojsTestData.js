@@ -294,15 +294,14 @@ if( 'undefined' !== typeof module )
 		//
 		this.Private
 		(
-			   instanceSubPrivateMethod
+			   "SSuper.publicSSuperMethodChangeAccess"
 
+			,  instanceSubPrivateMethod
 
 			,  this.Virtual
 				(
 					privateVirtualMethod
 				)
-
-			,  "SSuper.publicSSuperMethodChangeAccess"
 		)
 
 
@@ -398,7 +397,7 @@ if( 'undefined' !== typeof module )
 	{
 		if
 		(
-			   typeof SSuper .privateSSuperStaticDM === 'undefined'
+			   typeof SSuper.privateSSuperStaticDM === 'undefined'
 			&& typeof Sub   .privateSSuperStaticDM === 'undefined'
 			&& typeof Static.privateSSuperStaticDM === 'undefined'
 		)
