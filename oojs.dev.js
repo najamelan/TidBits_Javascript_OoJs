@@ -31,15 +31,16 @@ var classIDs = {}
  **/
 var FLAGS =
 {
-	  PRIVATE              : 1 << 1
-	, PROTECTED            : 1 << 2
-	, PUBLIC               : 1 << 3
-	, VIRTUAL              : 1 << 4
-	, INHERITED_INSTANCE   : 1 << 5
-	, INHERITED_STATIC     : 1 << 6
-	, BASE_ACCESS          : 1 << 7
-	, STORED               : 1 << 8
-	, SUPERS               : 1 << 9
+	  PRIVATE              : 1 <<  0
+	, PROTECTED            : 1 <<  1
+	, PUBLIC               : 1 <<  2
+	, VIRTUAL              : 1 <<  3
+	, INHERITED_INSTANCE   : 1 <<  4
+	, INHERITED_STATIC     : 1 <<  5
+	, BASE_ACCESS          : 1 <<  6
+	, STORED               : 1 <<  7
+	, SUPERS               : 1 <<  8
+	, ACTIVE               : 1 <<  9
 }
 
 
@@ -61,62 +62,85 @@ ClassLayout.prototype.get = function get( name, owner )
 		return undefined
 
 
+	if( owner === undefined )
+
+		for( var i = this.table[ name ].length - 1; i >= 0; --i )
+
+			if( this.table[ name ][ i ].flags & FLAGS.ACTIVE )
+
+				return this.table[ name ][ i ]
+
+
 	if( typeof owner === "string" )
 
 		owner = classIDs[ owner ]
 
 
-	if( owner === undefined  &&  this.table[ name ].length === 1 )
 
-		return this.table[ name ][ 0 ]
+	for( i = this.table[ name ].length - 1; i >= 0; --i )
 
+		if( this.table[ name ][ i ].ownerID === owner )
 
-
-	var owners = {}
-
-	for( var i = this.table[ name ].length - 1; i >= 0; --i )
-
-		owners[ this.table[ name ][ i ].ownerID ] = i
-
-
-
-	owner = owner || this.classID
-
-
-	if( owners[ owner ] !== undefined )
-
-		return this.table[ name ][ owners[ owner ] ]
+			return this.table[ name ][ i ]
 
 
 	return undefined
 }
 
 
-ClassLayout.prototype.set = function set( record )
+
+ClassLayout.prototype.setActive = function setActive( name, owner )
 {
-	console.assert( record.ownerID )
-	console.assert( record.name    )
-
-	var name = record.name
+	console.assert( this.table[ name ] !== undefined )
 
 
-	if( this.table[ name ] === undefined )
-	{
-		this.table[ name ] = [ record ]
-		return
-	}
+	if( typeof owner === "string" )
+
+		owner = classIDs[ owner ]
 
 
 	for( var i = this.table[ name ].length - 1; i >= 0; --i )
 	{
-		if( this.table[ name ][ i ].ownerID === record.ownerID )
-		{
-			extend( this.table[ name ][ i ], record )
-			return
-		}
-	}
+		if( this.table[ name ][ i ].ownerID === owner )
 
-	this.table[ name ].push( record )
+			this.table[ name ][ i ].flags |= FLAGS.ACTIVE
+
+		else
+
+			this.table[ name ][ i ].flags &= ~FLAGS.ACTIVE
+
+	}
+}
+
+
+
+ClassLayout.prototype.set = function set( record )
+{
+	var name = record.name
+
+	console.assert( record.ownerID )
+	console.assert( name           )
+
+
+	if( this.table[ name ] === undefined )
+
+		this.table[ name ] = [ record ]
+
+
+
+	else if( this.get( name, record.ownerID ) )
+
+		extend( this.get( name, record.ownerID ), record )
+
+
+	else
+
+		this.table[ name ].push( record )
+
+
+	if( record.flags & FLAGS.ACTIVE )
+
+		this.setActive( name, record.ownerID )
 }
 
 
@@ -149,6 +173,7 @@ ClassLayout.prototype.each = function each()
 
 	return ret
 }
+
 
 
 
@@ -497,7 +522,6 @@ function copyInheritedProps( destination, parentRec, info )
 	}
 
 
-
 	// copy if: it is an own property of the class,
 	// or if no own property exist (then the inherited one ends up on the main object)
 	//
@@ -559,12 +583,7 @@ function inheritProperties( info )
 			continue
 
 
-		Object.defineProperty
-		(
-			  this
-			, accessibleBases[ i ]
-			, Object.getOwnPropertyDescriptor( parentRec._this, accessibleBases[ i ] )
-		)
+		this[ accessibleBases[ i ] ] = extend( {}, parentRec._this[ accessibleBases[ i ] ], true /*accessors only*/ )
 	}
 
 
@@ -786,7 +805,7 @@ function storeDataMembers( info )
 
 		if( info.layout.get( key, info.classID ) === undefined )
 
-			info.layout.set( { name: key, reference: null, flags: FLAGS.PRIVATE, ownerID: info.classID, setterID: info.classID } )
+			info.layout.set( { name: key, flags: FLAGS.PRIVATE | FLAGS.ACTIVE, ownerID: info.classID, setterID: info.classID } )
 
 
 
@@ -848,12 +867,12 @@ function updateLayout( info, member )
 		throw new TypeError( "Parameters to this.Public/Private/Protected have to be either strings or references to functions. Got: " + member + " in class " + info.classMeta.name )
 
 
-	// TODO: if people don't pass a scope name, because they don't override an inherited property,
-	// we should throw an error message, hinting them to mention the baseclass
 
-	scope = scope || info.classMeta.name
 
-	var flags, existing = info.layout.get( name, scope )
+
+	var  flags
+	   , owner    = scope || info.classMeta.name
+	   , existing = info.layout.get( name, owner )
 
 	if( existing )
 	{
@@ -866,7 +885,7 @@ function updateLayout( info, member )
 			flags = info.accessLvl | ( existing.flags & FLAGS.VIRTUAL )
 	}
 
-	else if( !ref && scope === info.classMeta.name )
+	else if( !ref && !scope )
 
 		throw new Error( "Couldn't find property: " + name + " in class: " + info.classMeta.name )
 
@@ -875,7 +894,12 @@ function updateLayout( info, member )
 		flags = info.accessLvl
 
 
-	info.layout.set({ name: name, reference: ref, flags: flags, ownerID: classIDs[ scope ], setterID: info.classID })
+	if( !scope || !info.layout.get( name ) || info.layout.get( name ).ownerID === classIDs[ owner ] )
+
+		flags |= FLAGS.ACTIVE
+
+
+	info.layout.set({ name: name, reference: ref, flags: flags, ownerID: classIDs[ owner ], setterID: info.classID })
 
 
 
@@ -905,9 +929,9 @@ function inherit( info )
 
 	for( var i = info.supers.length - 1; i >= 0; --i )
 	{
-		var parentMeta   = classes[ instances[ info.supers[ i ] ].classID ]
-		var parentLayout = parentMeta[ info.layoutType ]
-		var virtuals     = parentMeta.virtuals
+		var   parentMeta   = classes[ instances[ info.supers[ i ] ].classID ]
+		    , parentLayout = parentMeta[ info.layoutType ]
+		    , virtuals     = parentMeta.virtuals
 
 
 		// copy over the parent layout except for the private stuff
@@ -947,7 +971,7 @@ function inherit( info )
 
 function inheritLayout( info )
 {
-	if( this.flags & FLAGS.PRIVATE )
+	if( this.flags & FLAGS.PRIVATE  ||  !( this.flags & FLAGS.ACTIVE ) )
 
 		return
 
@@ -956,6 +980,7 @@ function inheritLayout( info )
 	({
 		  name      : this.name
 		, ownerID   : this.ownerID
+		, setterID  : this.setterID
 		, reference : this.reference
 		, flags     : this.flags & ~FLAGS.VIRTUAL
 	})
@@ -1013,16 +1038,21 @@ function createAccessors( that, info )
 		// Correct the access level in object.base.member
 		// add stuff that has been made public and remove stuff that has been made private or protected
 		//
-		var own = info.layout.get( this.name, info.classID ), owner = classes[ this.ownerID ].name
+		var   active = info.layout.get( this.name )
+		    , own    = info.layout.get( this.name, info.classID )
+		    , owner  = classes[ this.ownerID ].name
 
-		if( !(this.flags & FLAGS.PUBLIC ) )
+		if( !( this.flags & FLAGS.PUBLIC ) )
 		{
+			if( this.name === "publicSSuperMethodChangeAccess" )
+				console.log( info.layout.table );
+
 			delete info.instRec.iFace[ owner ][ this.name ]
 
-			// if we don't have an own member with that name that is public, also delete from our interface
-			// need to check if people would call public before private or protected...
+			// if the version that we are turning private or protected is the one on our interface,
+			// we need to remove it
 			//
-			if( !own || !( own.flags & FLAGS.PUBLIC ) )
+			if( active && active.ownerID === this.ownerID )
 
 				delete info.instRec.iFace[ this.name ]
 
@@ -1049,8 +1079,8 @@ function createAccessors( that, info )
 	}
 
 
-
-
+	// now we are only dealing with non-inherited properties
+	//
 	var   toBePatched = this.flags & FLAGS.PUBLIC  ?  [ that, info.iFace ]  :  [ that ]
 	    , ownerID     = that.ooID
 

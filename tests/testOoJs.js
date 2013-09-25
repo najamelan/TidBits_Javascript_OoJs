@@ -1208,6 +1208,16 @@ function inheritance()
 
 
 		,  {
+					message : "   make sure it's still available on the base\n"
+				,  input   : sub.getPrivateInstance().SSuper.publicSSuperMethodChangeAccess !== undefined
+				,  expect  : true
+
+				,  errormsg:     "sub.getPrivateInstance().SSuper.publicSSuperMethodChangeAccess is undefined: " +  sub.getPrivateInstance().SSuper.publicSSuperMethodChangeAccess
+									+ location
+			}
+
+
+		,  {
 					message : "   make sure it's availble from within\n"
 				,  input   : sub.getPrivateInstance().publicSSuperMethodChangeAccess() === "SSuper version"
 				,  expect  : true
@@ -1223,6 +1233,16 @@ function inheritance()
 				,  expect  : true
 
 				,  errormsg:     "subber.getPrivateInstance().publicSSuperMethodChangeAccess is not undefined: " +  subber.getPrivateInstance().publicSSuperMethodChangeAccess
+									+ location
+			}
+
+
+		,  {
+					message : "   making private shouldn't affect the parent .Base object\n"
+				,  input   : subber.overRideChangeAccess() === "SSuper version: overRideChangeAccess"
+				,  expect  : true
+
+				,  errormsg:     "subber.overRideChangeAccess() did not return : 'SSuper version: overRideChangeAccess'" +  subber.overRideChangeAccess()
 									+ location
 			}
 

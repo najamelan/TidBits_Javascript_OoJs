@@ -100,6 +100,7 @@ if( 'undefined' !== typeof module )
 						, getPrivateInstance
 						, publicCallVirtualMethod
 						, publicSSuperMethodChangeAccess
+						, overRideChangeAccess
 						, getID
 
 						,  this.Virtual
@@ -109,6 +110,12 @@ if( 'undefined' !== typeof module )
 
 						, "publicSSuperInstanceDM"
 					)
+	}
+
+
+	function overRideChangeAccess()
+	{
+		return "SSuper version: overRideChangeAccess"
 	}
 
 
@@ -319,11 +326,18 @@ if( 'undefined' !== typeof module )
 			, accessInstanceStaticPrivateDM
 			, callSSuperProtectedInstanceCounter
 			, getPrivateInstance
+			, overRideChangeAccess
 			, "publicSubInstanceDM"
 		)
 
 
-		return   iFace
+		return iFace
+	}
+
+
+	function overRideChangeAccess()
+	{
+		return this.SSuper.overRideChangeAccess()
 	}
 
 
@@ -485,7 +499,9 @@ if( 'undefined' !== typeof module )
 		//
 		this.Private
 		(
-			privateVirtualMethod
+			  privateVirtualMethod
+
+			// , "SSuper.overRideChangeAccess"
 		)
 
 
