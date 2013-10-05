@@ -13,11 +13,11 @@ if( namespace[ "OoJs" ] ) return
 
 namespace[ "OoJs" ] = OoJs
 
-// Static.ooID = classMeta
+// Static.ooID : classMeta
 //
 var classes  = {}
 
-// this.ooID = { classID, State = { membername : value } }
+// this.ooID : InstanceRecord
 //
 var instances= {}
 
@@ -37,7 +37,7 @@ var FLAGS =
 	, VIRTUAL              : 1 <<  3
 	, INHERITED_INSTANCE   : 1 <<  4
 	, INHERITED_STATIC     : 1 <<  5
-	, BASE_ACCESS          : 1 <<  6
+	, BASE_ACCESSORS       : 1 <<  6
 	, STORED               : 1 <<  7
 	, SUPERS               : 1 <<  8
 	, ACTIVE               : 1 <<  9
@@ -87,6 +87,12 @@ ClassLayout.prototype.get = function get( name, owner )
 	return undefined
 }
 
+
+
+ClassLayout.prototype.getAll = function get( name )
+{
+	return this.table[ name ]
+}
 
 
 ClassLayout.prototype.setActive = function setActive( name, owner )
@@ -176,9 +182,6 @@ ClassLayout.prototype.each = function each()
 
 
 
-
-
-
 function ClassMeta( namespace, Static, name, id, iface )
 {
 	this.Static            = Static
@@ -199,7 +202,7 @@ function ClassMeta( namespace, Static, name, id, iface )
 }
 
 
-function IntancesRecord( _this, classID, iFace )
+function InstanceRecord( _this, classID, iFace )
 {
 	this._this   = _this
 	this.classID = classID
@@ -211,6 +214,7 @@ function IntancesRecord( _this, classID, iFace )
 
 OoJs.setupClass = setupClass
 OoJs.typeOf     = typeOf
+OoJs.extend     = extend
 
 /** @expose */
 function OoJs(){ return null } // Can't instanciate
@@ -250,7 +254,7 @@ function setupClass( callerNamespace, sub, bases )
 	// Keep the meta data of our classes, so when something wants to inherit, we have the relevant information
 	//
 	classes  [ Static.ooID ] = new ClassMeta     ( callerNamespace, Static, sub, Static.ooID, IFace )
-	instances[ Static.ooID ] = new IntancesRecord( Static, Static.ooID, subCl                       )
+	instances[ Static.ooID ] = new InstanceRecord( Static, Static.ooID, subCl                       )
 	classIDs [     sub     ] = Static.ooID
 
 	/// Structure of that bases in classMeta
@@ -416,7 +420,7 @@ function typeOf( object ){ return classes[ instances[ object.ooID ].classID ].na
 
 // First deals with registering the methods as virtual, then returns an array for Public, Private or Protected
 //
-function Virtual  ()
+function Virtual()
 {
 	accessModifier.call( this, arguments, FLAGS.VIRTUAL )
 
@@ -557,12 +561,12 @@ function copyInheritedProps( destination, parentRec, info )
 //
 function inheritProperties( info )
 {
-	if( info.classMeta.bases.length === 0  ||  info.instRec.flags & FLAGS.BASE_ACCESS )
+	if( info.classMeta.bases.length === 0  ||  info.instRec.flags & FLAGS.BASE_ACCESSORS )
 
 		return
 
 
-	info.instRec.flags |= FLAGS.BASE_ACCESS
+	info.instRec.flags |= FLAGS.BASE_ACCESSORS
 
 
 	// just a single inheritance version
@@ -600,7 +604,6 @@ function inheritProperties( info )
 	// copy it under this[ baseName ]
 	//
 	this[ baseName ]      = extend( {}, this, true /*accessors only*/ )
-	this[ baseName ].ooID = parentRec._this.ooID
 
 	// get the parent interface
 	//
@@ -614,8 +617,7 @@ function inheritProperties( info )
 			{
 				extend( info.iFace, parentRec.iFace )
 
-				info.iFace[ baseName ]      = extend( {}, parentRec.iFace, true /*accessors only*/ )
-				info.iFace[ baseName ].ooID = parentRec._this.ooID
+				info.iFace[ baseName ] = extend( {}, parentRec.iFace, true /*accessors only*/ )
 
 				break
 			}
@@ -936,7 +938,7 @@ function inherit( info )
 
 		// copy over the parent layout except for the private stuff
 		//
-		parentLayout.each( inheritLayout, info )
+		parentLayout.each( inheritLayout, info, parentMeta )
 
 
 		// copy the entries in the virtual table unless the parent has overridden it with a non-virtual method
@@ -969,11 +971,34 @@ function inherit( info )
 
 
 
-function inheritLayout( info )
+function inheritLayout( info, parentMeta )
 {
 	if( this.flags & FLAGS.PRIVATE  ||  !( this.flags & FLAGS.ACTIVE ) )
 
 		return
+
+
+	var  newAccessLvl
+		, inheritLvl
+		, flags      = this.flags & ~FLAGS.VIRTUAL
+
+
+	for( var i = info.classMeta.bases.length - 1; i >= 0; --i )
+
+		if( info.classMeta.bases[ i ].inherit === parentMeta.name )
+
+			inheritLvl = info.classMeta.bases[ i ].as
+
+
+	// deal with classes inherited as private or protected
+	//
+	if( inheritLvl === "private"  ||  inheritLvl === "protected" )
+	{
+		newAccessLvl = inheritLvl === "private" ? FLAGS.PRIVATE : FLAGS.PROTECTED
+
+		flags &= ~FLAGS.PUBLIC & ~FLAGS.PROTECTED
+		flags |= newAccessLvl
+	}
 
 
 	info.layout.set
@@ -982,7 +1007,7 @@ function inheritLayout( info )
 		, ownerID   : this.ownerID
 		, setterID  : this.setterID
 		, reference : this.reference
-		, flags     : this.flags & ~FLAGS.VIRTUAL
+		, flags     : flags
 	})
 }
 
@@ -1024,7 +1049,7 @@ function fixVirtual( info, name, ownerID )
 //
 function createAccessors( that, info )
 {
-	// only do this one for every access level
+	// only do this once for every access level
 	//
 	if( !( this.flags & info.accessLvl ) || this.setterID !== info.classID )
 
@@ -1044,9 +1069,6 @@ function createAccessors( that, info )
 
 		if( !( this.flags & FLAGS.PUBLIC ) )
 		{
-			if( this.name === "publicSSuperMethodChangeAccess" )
-				console.log( info.layout.table );
-
 			delete info.instRec.iFace[ owner ][ this.name ]
 
 			// if the version that we are turning private or protected is the one on our interface,
@@ -1077,6 +1099,17 @@ function createAccessors( that, info )
 
 		return
 	}
+
+
+	// if it is from this class, it might override a member that we inherited.
+	// in that case it is possible that the public interface holds a version that should be
+	// removed if this is not public (and thus we won't override it)
+	//
+	else if( !( this.flags & FLAGS.PUBLIC ) )
+
+		delete info.instRec.iFace[ this.name ]
+
+
 
 
 	// now we are only dealing with non-inherited properties
@@ -1168,7 +1201,7 @@ function initialize()
 
 	Object.defineProperty( iFace, "ooID", { value: this.ooID } )
 
-	instances[ this.ooID ] = new IntancesRecord( this, this.constructor.ooID, iFace )
+	instances[ this.ooID ] = new InstanceRecord( this, this.constructor.ooID, iFace )
 }
 
 
@@ -1204,6 +1237,6 @@ function extend( destination, root, accessorOnly )
 
 if( 'undefined' !== typeof module )
 
-	module.exports.OoJs = TidBits.OoJs
+	module.exports = TidBits
 
 ;
