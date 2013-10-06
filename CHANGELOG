@@ -1,10 +1,16 @@
 v.xx
 ----
 
-change 1 BREAKS COMPATIBILITY WITH PRIOR VERSIONS
+change 1, 2 BREAK COMPATIBILITY WITH PRIOR VERSIONS
 
 1. Changing the access level of inherited members now needs to be done as: this/Static.Private( "Base.method", "Base.datamember" )
-   This assures compatibility with C++ because it allows you to have members in subclasses with the same name as members in base classes and prepares ground for allowing an access level specifier at class level for inheritance.
+   This assures compatibility with C++ because it allows you to have members in subclasses with the same name as members in base classes.
+
+2. Access level on class level for inheritance. Now defaults to private as in C++
+
+3. Static.Friends() now allows friend classes
+
+4. Rewrite of the unit tests, now runs about 1600 tests
 
 
 
