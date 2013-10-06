@@ -57,6 +57,9 @@ function ClassLayout( classID, type )
 
 ClassLayout.prototype.get = function get( name, owner )
 {
+	name = mangle( name )
+
+
 	if( this.table[ name ] === undefined )
 
 		return undefined
@@ -91,7 +94,7 @@ ClassLayout.prototype.get = function get( name, owner )
 
 ClassLayout.prototype.getAll = function get( name )
 {
-	return this.table[ name ]
+	return this.table[ mangle( name ) ]
 }
 
 
@@ -122,10 +125,10 @@ ClassLayout.prototype.setActive = function setActive( name, owner )
 
 ClassLayout.prototype.set = function set( record )
 {
-	var name = record.name
+	var name = mangle( record.name )
 
 	console.assert( record.ownerID )
-	console.assert( name           )
+	console.assert( record.name    )
 
 
 	if( this.table[ name ] === undefined )
@@ -134,9 +137,9 @@ ClassLayout.prototype.set = function set( record )
 
 
 
-	else if( this.get( name, record.ownerID ) )
+	else if( this.get( unmangle( name ), record.ownerID ) )
 
-		extend( this.get( name, record.ownerID ), record )
+		extend( this.get( unmangle( name ), record.ownerID ), record )
 
 
 	else
@@ -179,6 +182,17 @@ ClassLayout.prototype.each = function each()
 
 	return ret
 }
+
+
+
+// otherwise we get in trouble when people want to create properties called push or toString etc...
+//
+function   mangle( name ){ return "OoJs__" + name     }
+function unmangle( name ){ return name.substring( 6 ) }
+
+
+
+
 
 
 
