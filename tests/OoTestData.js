@@ -664,6 +664,9 @@ if( namespace[ "InheritPublicA" ] ) return
     namespace.InheritPublicA = InheritPublicA
 var Static                   = TidBits.OoJs.setupClass( namespace, "InheritPublicA" )
 
+Static.Friends( "TestGetPrivateInstance" )
+
+
 Static.AprivateStaticDM   = "AprivateStaticDM"
 Static.AprotectedStaticDM = "AprotectedStaticDM"
 Static.ApublicStaticDM    = "ApublicStaticDM"
@@ -844,6 +847,9 @@ if( namespace[ "InheritPublicC" ] ) return
     namespace.InheritPublicC = InheritPublicC
 var Static = TidBits.OoJs.setupClass( namespace, "InheritPublicC", { inherit: "InheritPublicB", as: "public" } )
 
+Static.Friends( "TestGetPrivateInstance" )
+
+
 Static.CprivateStaticDM   = "CprivateStaticDM"
 Static.CprotectedStaticDM = "CprotectedStaticDM"
 Static.CpublicStaticDM    = "CpublicStaticDM"
@@ -999,6 +1005,7 @@ if( namespace[ "GetterSetterB" ] ) return
     namespace.GetterSetterB = GetterSetterB
 var Static                  = TidBits.OoJs.setupClass( namespace, "GetterSetterB", { inherit: "GetterSetterA", as: "public" } )
 
+Static.Friends( "TestDMConsistency" )
 
 Static.Public
 (
@@ -1053,6 +1060,8 @@ if( namespace[ "VirtualA" ] ) return
 
     namespace.VirtualA = VirtualA
 var Static             = TidBits.OoJs.setupClass( namespace, "VirtualA" )
+
+Static.Friends( "TestGetPrivateInstance" )
 
 
 Static.Public
@@ -1163,6 +1172,67 @@ function callBPrivateNonVirtual   (){ return this.privateNonVirtualMethod() }
 
 
 
+
+;(function Class_VirtualC( namespace, undefined )
+{
+'use strict';
+
+if( namespace[ "VirtualC" ] ) return
+
+    namespace.VirtualC = VirtualC
+var Static             = TidBits.OoJs.setupClass( namespace, "VirtualC", { inherit: "VirtualB", as: "public" } )
+
+Static.Friends( "TestGetPrivateInstance" )
+
+
+Static.Public
+(
+	  getPrivate
+	, getPrivateInst
+)
+
+
+// Constructor
+//
+function VirtualC()
+{
+	this.Private
+	(
+		this.Virtual
+		(
+			  privateVirtualMethod
+		)
+
+		, privateNonVirtualMethod
+	)
+
+
+	return this.Public
+	(
+		  callAPrivateVirtual
+		, callAPrivateNonVirtual
+		, callCPrivateVirtual
+		, callCPrivateNonVirtual
+	)
+}
+
+
+// Methods
+//
+function getPrivate    (       ){ return Static                             }
+function getPrivateInst( iFace ){ return Static.getPrivateInstance( iFace ) }
+
+function privateVirtualMethod   (){ return "C version"             }
+function privateNonVirtualMethod(){ return "C version non virtual" }
+
+function callAPrivateVirtual      (){ return this.callPrivateVirtual   () }
+function callAPrivateNonVirtual   (){ return this.callPrivateNonVirtual() }
+
+function callCPrivateVirtual      (){ return this.privateVirtualMethod   () }
+function callCPrivateNonVirtual   (){ return this.privateNonVirtualMethod() }
+
+
+})( TidBits.TestData ); // VirtualC
 
 
 
@@ -1662,13 +1732,8 @@ if( namespace[ "GetPrivateInstance" ] ) return
 var Static                       = TidBits.OoJs.setupClass( namespace, "GetPrivateInstance" )
 
 
-Static.Private
-(
-)
+Static.Friends( "TestGetPrivateInstance" )
 
-Static.Protected
-(
-)
 
 Static.Public
 (
@@ -1716,14 +1781,6 @@ if( namespace[ "GetPrivateInstanceB" ] ) return
 var Static                        = TidBits.OoJs.setupClass( namespace, "GetPrivateInstanceB", { inherit: "GetPrivateInstance", as: "public" } )
 
 
-Static.Private
-(
-)
-
-Static.Protected
-(
-)
-
 Static.Public
 (
 	  getPrivate
@@ -1756,6 +1813,63 @@ function getPrivate    (       ){ return Static                             }
 function getPrivateInst( iFace ){ return Static.getPrivateInstance( iFace ) }
 
 })( TidBits.TestData ); // GetPrivateInstanceB
+
+
+
+
+
+
+
+;(function Class_GetPrivateInstanceC( namespace, undefined )
+{
+'use strict';
+
+if( namespace[ "GetPrivateInstanceC" ] ) return
+
+    namespace.GetPrivateInstanceC = GetPrivateInstanceC
+var Static                        = TidBits.OoJs.setupClass( namespace, "GetPrivateInstanceC", { inherit: "GetPrivateInstanceB", as: "public" } )
+
+
+Static.Private
+(
+)
+
+Static.Protected
+(
+)
+
+Static.Public
+(
+	  getPrivate
+	, getPrivateInst
+)
+
+
+// Constructor
+//
+function GetPrivateInstanceC()
+{
+	this.Private
+	(
+	)
+
+	this.Protected
+	(
+	)
+
+
+	return this.Public
+	(
+	)
+}
+
+
+// Methods
+//
+function getPrivate    (       ){ return Static                             }
+function getPrivateInst( iFace ){ return Static.getPrivateInstance( iFace ) }
+
+})( TidBits.TestData ); // GetPrivateInstanceC
 
 
 
@@ -2141,8 +2255,8 @@ VirtualB :
 			, { name: "callAPrivateVirtual"     , type:"method", value: "B version"            , access: "public" , scope: "instance" }
 			, { name: "callAPrivateNonVirtual"  , type:"method", value: "A version non virtual", access: "public" , scope: "instance" }
 
-			, { name: "callPrivateVirtual"     , type:"method", value: "B version"            , access: "public" , scope: "instance" }
-			, { name: "callPrivateNonVirtual"  , type:"method", value: "A version non virtual", access: "public" , scope: "instance" }
+			, { name: "callPrivateVirtual"      , type:"method", value: "B version"            , access: "public" , scope: "instance" }
+			, { name: "callPrivateNonVirtual"   , type:"method", value: "A version non virtual", access: "public" , scope: "instance" }
 		]
 },
 

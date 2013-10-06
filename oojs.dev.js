@@ -415,37 +415,83 @@ function Friends()
 //
 function getPrivateInstance( iFace )
 {
-	var parent
-
 	// prevent cheating since we rely on ooID
 	//
-	if
-	(
-			this   !==  classes[ instances[ this.ooID ].classID ].Static
-		|| iFace  !==  instances[ iFace.ooID ].iFace
-
-	)
+	if( this  !==  classes[ instances[ this.ooID ].classID ].Static )
 
 		return null
 
 
-	// find the private object and support getting our private object from a subclass iFace
+	// find the private objects
 	//
-	if( ( parent = findParent( iFace.ooID, this.ooID ) ) )
+	var   access   = []
+	    , id       = iFace.ooID
+	    , noSelf   = false
+	    , result   = null
 
-		return instances[ parent ]._this
+
+	while( ( id = findParent( id, this.ooID, true, noSelf ) ) )
+	{
+		access.unshift( instances[ id ]._this )
+
+		noSelf = true
+	}
 
 
-	// enable friend classes
+	// combine the different parts of access
 	//
-	for( var i = classes[ instances[ iFace.ooID ].classID ].friends.length - 1; i >= 0; --i )
+	if( access.length === 1 )
 
-		if( classes[ instances[ iFace.ooID ].classID ].friends[ i ] === classes[ instances[ this.ooID ].classID ].name )
-
-			return instances[ iFace.ooID ]._this
+		return access.pop()
 
 
-	return null
+	else if( access.length > 1 )
+	{
+		// need to call with an empty object in order not to change the objects in the array
+		//
+		result = access.reduce( extend, {} )
+
+
+		// fix the parent accessors to hold the private members as well
+		//
+		for( var i = access.length - 1; i >= 0; --i )
+		{
+			var classMeta = classes[ instances[ access[ i ].ooID ].classID ]
+
+			if( result[ classMeta.name ] )
+			{
+				// get all the private members, will invalidate the virtual methods
+				//
+				extend( result[ classMeta.name ], access[ i ], true /*accessor properties only*/ )
+
+
+				// fix the virtuals
+				//
+				var layoutType = classMeta.Static === access[ i ]  ?  "staticLayout"  :  "instanceLayout"
+
+
+				classMeta[ layoutType ].each( function createVirtuals()
+				{
+					if( this.flags & FLAGS.VIRTUAL )
+
+						Object.defineProperty
+						(
+							  result[ classMeta.name ]
+							, this.name
+
+							,  {
+									  enumerable  : true
+									, configurable: true
+
+									, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( this.reference, access[ i ] )
+								}
+						)
+				})
+			}
+		}
+	}
+
+	return result
 }
 
 
@@ -1202,27 +1248,48 @@ function createAccessors( that, info )
 
 
 
-function findParent( id, classID )
+// Find the parent of the object defined by id which belongs to class classID
+//
+// The alternate form of this function when friendsAlso is true, will also return the given parent if
+// the classID refers to a class that is friends with the parent class
+//
+function findParent( id, classID, friendsAlso, noSelf )
 {
 	// if the object is of the right class return it
 	//
-	if( instances[ id ].classID === classID )
+	if
+	(
+		   !noSelf
+
+		&& (
+			     instances[ id ].classID === classID
+
+		     ||    friendsAlso
+		        && classes[ instances[ id ].classID ].friends.indexOf( classes[ classID ].name ) !== -1
+		   )
+	)
 
 		return id
 
 
-	var parent = null
-	var ssuper
+	var   parent = null
+	    , ssuper
 
 	for( var i = instances[ id ].supers.length - 1; ( ssuper = instances[ id ].supers[ i ] ) ; --i )
 	{
-		if( ssuper.classID === classID )
+		if
+		(
+			   ssuper.classID === classID
+
+			||     friendsAlso
+			   &&  classes[ instances[ ssuper ].classID ].friends.indexOf( classes[ classID ].name ) !== -1
+		)
 		{
 			parent = ssuper
 			break
 		}
 
-		else if( null !== ( parent = findParent( ssuper, classID ) ) )
+		else if( null !== ( parent = findParent( ssuper, classID, friendsAlso, noSelf ) ) )
 
 			break
 	}
@@ -1258,7 +1325,7 @@ function extend( destination, root, accessorOnly )
 {
 	for( var key in root )
 	{
-		if( !root.hasOwnProperty( key ) || !Object.getOwnPropertyDescriptor( root, key ).get && accessorOnly )
+		if( !root.hasOwnProperty( key )  ||  accessorOnly === true && !Object.getOwnPropertyDescriptor( root, key ).get )
 
 			continue
 

@@ -1,5 +1,4 @@
 var  TidBits  = TidBits || {} // our namespace
-   , TestData = {}
 
 
 if( 'undefined' !== typeof module )
@@ -78,7 +77,7 @@ function runTestCase()
 {
 	this.message += "\n\nVirtual methods TestCase\n-----------------------------------"
 
-	this.basicTests()
+	this.basicTests()  // will test the return values of the methods and thus verify that the right version is called
 }
 
 
