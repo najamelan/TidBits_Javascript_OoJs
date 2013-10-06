@@ -202,7 +202,7 @@ function ApublicInstanceMethod   (){ return "ApublicInstanceMethod"    }
 if( namespace[ "InheritPrivateB" ] ) return
 
     namespace.InheritPrivateB = InheritPrivateB
-var Static = TidBits.OoJs.setupClass( namespace, "InheritPrivateB", { inherit: "InheritPrivateA", as: "private"} )
+var Static = TidBits.OoJs.setupClass( namespace, "InheritPrivateB", "InheritPrivateA" )
 
 Static.BprivateStaticDM   = "BprivateStaticDM"
 Static.BprotectedStaticDM = "BprotectedStaticDM"
@@ -291,7 +291,7 @@ function BpublicInstanceMethod   (){ return "BpublicInstanceMethod"    }
 if( namespace[ "InheritPrivateC" ] ) return
 
     namespace.InheritPrivateC = InheritPrivateC
-var Static = TidBits.OoJs.setupClass( namespace, "InheritPrivateC", { inherit: "InheritPrivateB", as: "private" } )
+var Static = TidBits.OoJs.setupClass( namespace, "InheritPrivateC", "InheritPrivateB" )
 
 Static.CprivateStaticDM   = "CprivateStaticDM"
 Static.CprotectedStaticDM = "CprotectedStaticDM"

@@ -282,7 +282,7 @@ function setupClass( callerNamespace, sub, bases )
 
 		for( var i = bases.length - 1; i >= 0; --i )
 		{
-			var defaults = { as: "public", namespace: callerNamespace }
+			var defaults = { as: "private", namespace: callerNamespace }
 
 
 			if( typeof bases[ i ] === "string" )
