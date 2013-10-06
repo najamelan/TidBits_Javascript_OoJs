@@ -193,6 +193,7 @@ function ClassMeta( namespace, Static, name, id, iface )
 	this.allBases          = []
 	this.accessibleBases   = []
 	this.inaccessibleBases = []
+	this.friends           = []
 	this.staticLayout      = new ClassLayout( Static.ooID, "staticLayout"   )
 	this.instanceLayout    = new ClassLayout( Static.ooID, "instanceLayout" )
 	this.layoutInstance    = null
@@ -226,13 +227,16 @@ function setupClass( callerNamespace, sub, bases )
 
 	function Static(){}
 
+
 	Object.defineProperty( Static, "Public"            , { value: Public             } )
 	Object.defineProperty( Static, "Protected"         , { value: Protected          } )
 	Object.defineProperty( Static, "Private"           , { value: Private            } )
+	Object.defineProperty( Static, "Friends"           , { value: Friends            } )
 	Object.defineProperty( Static, "getPrivateInstance", { value: getPrivateInstance } )
 
 	Object.defineProperty( Static, "ooID", { value: uid()       } )
 	Object.defineProperty( subCl , "ooID", { value: Static.ooID } )
+
 
 	// makes your life easier when debugging things
 	//
@@ -242,6 +246,7 @@ function setupClass( callerNamespace, sub, bases )
 		, "toString"
 		, { value: function toString(){ return "function Static(){ /*" + sub + "*/ }" } }
 	)
+
 
 	Object.defineProperty
 	(
@@ -322,12 +327,12 @@ function setupClass( callerNamespace, sub, bases )
 
 	// TODO: test what prototype is if there is no base and on IFace do we end up with Public, ...?
 
-	Object.defineProperty( subCl.prototype, "constructor", { configurable: true, value: subCl      } )
-	Object.defineProperty( subCl.prototype, "Public"     , { configurable: true, value: Public     } )
-	Object.defineProperty( subCl.prototype, "Protected"  , { configurable: true, value: Protected  } )
-	Object.defineProperty( subCl.prototype, "Private"    , { configurable: true, value: Private    } )
-	Object.defineProperty( subCl.prototype, "Super"      , { configurable: true, value: Super      } )
-	Object.defineProperty( subCl.prototype, "Virtual"    , { configurable: true, value: Virtual    } )
+	Object.defineProperty( subCl.prototype, "constructor", { configurable: true, value: subCl     } )
+	Object.defineProperty( subCl.prototype, "Public"     , { configurable: true, value: Public    } )
+	Object.defineProperty( subCl.prototype, "Protected"  , { configurable: true, value: Protected } )
+	Object.defineProperty( subCl.prototype, "Private"    , { configurable: true, value: Private   } )
+	Object.defineProperty( subCl.prototype, "Super"      , { configurable: true, value: Super     } )
+	Object.defineProperty( subCl.prototype, "Virtual"    , { configurable: true, value: Virtual   } )
 
 
 	// is the interface which will be returned by the constructor of the class
@@ -389,27 +394,104 @@ function Protected(){        accessModifier.call( this, arguments, FLAGS.PROTECT
 function Private  (){        accessModifier.call( this, arguments, FLAGS.PRIVATE   ) }
 
 
+// Set the classes that are allowed to access the private object
+//
+function Friends()
+{
+	var classMeta = classes[ instances[ this.ooID ].classID ]
+
+	// prevent cheating since we rely on ooID
+	//
+	if( this !== classMeta.Static )
+
+		return
+
+
+	classMeta.friends = [].concat( Array.prototype.slice.call( arguments, 0, arguments.length ) )
+}
+
+
 // Allow access to the private instance within a class if you have the interface
 //
 function getPrivateInstance( iFace )
 {
-	var parent
-
-	// prevent cheating
+	// prevent cheating since we rely on ooID
 	//
-	if( this !== classes[ instances[ this.ooID ].classID ].Static )
+	if( this  !==  classes[ instances[ this.ooID ].classID ].Static )
 
 		return null
 
 
-	if( ( parent = findParent( iFace.ooID, this.ooID ) ) )
+	// find the private objects
+	//
+	var   access   = []
+	    , id       = iFace.ooID
+	    , noSelf   = false
+	    , result   = null
 
-		return instances[ parent ]._this
+
+	while( ( id = findParent( id, this.ooID, true, noSelf ) ) )
+	{
+		access.unshift( instances[ id ]._this )
+
+		noSelf = true
+	}
 
 
-	else
+	// combine the different parts of access
+	//
+	if( access.length === 1 )
 
-		return null
+		return access.pop()
+
+
+	else if( access.length > 1 )
+	{
+		// need to call with an empty object in order not to change the objects in the array
+		//
+		result = access.reduce( extend, {} )
+
+
+		// fix the parent accessors to hold the private members as well
+		//
+		for( var i = access.length - 1; i >= 0; --i )
+		{
+			var classMeta = classes[ instances[ access[ i ].ooID ].classID ]
+
+			if( result[ classMeta.name ] )
+			{
+				// get all the private members, will invalidate the virtual methods
+				//
+				extend( result[ classMeta.name ], access[ i ], true /*accessor properties only*/ )
+
+
+				// fix the virtuals
+				//
+				var layoutType = classMeta.Static === access[ i ]  ?  "staticLayout"  :  "instanceLayout"
+
+
+				classMeta[ layoutType ].each( function createVirtuals()
+				{
+					if( this.flags & FLAGS.VIRTUAL )
+
+						Object.defineProperty
+						(
+							  result[ classMeta.name ]
+							, this.name
+
+							,  {
+									  enumerable  : true
+									, configurable: true
+
+									, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( this.reference, access[ i ] )
+								}
+						)
+				})
+			}
+		}
+	}
+
+	return result
 }
 
 
@@ -767,12 +849,14 @@ function accessModifier( newMembers, accessLvl )
 	}
 
 
+
 	// set the actual accessor properties
 	// no need to do this with virtual, because virtual is always wrapped in Private, Protected or Public
 	//
 	if( FLAGS.VIRTUAL !== accessLvl )
 
 		info.layout.each( createAccessors, this, info )
+
 
 
 
@@ -1164,27 +1248,48 @@ function createAccessors( that, info )
 
 
 
-function findParent( id, classID )
+// Find the parent of the object defined by id which belongs to class classID
+//
+// The alternate form of this function when friendsAlso is true, will also return the given parent if
+// the classID refers to a class that is friends with the parent class
+//
+function findParent( id, classID, friendsAlso, noSelf )
 {
 	// if the object is of the right class return it
 	//
-	if( instances[ id ].classID === classID )
+	if
+	(
+		   !noSelf
+
+		&& (
+			     instances[ id ].classID === classID
+
+		     ||    friendsAlso
+		        && classes[ instances[ id ].classID ].friends.indexOf( classes[ classID ].name ) !== -1
+		   )
+	)
 
 		return id
 
 
-	var parent = null
-	var ssuper
+	var   parent = null
+	    , ssuper
 
 	for( var i = instances[ id ].supers.length - 1; ( ssuper = instances[ id ].supers[ i ] ) ; --i )
 	{
-		if( ssuper.classID === classID )
+		if
+		(
+			   ssuper.classID === classID
+
+			||     friendsAlso
+			   &&  classes[ instances[ ssuper ].classID ].friends.indexOf( classes[ classID ].name ) !== -1
+		)
 		{
 			parent = ssuper
 			break
 		}
 
-		else if( null !== ( parent = findParent( ssuper, classID ) ) )
+		else if( null !== ( parent = findParent( ssuper, classID, friendsAlso, noSelf ) ) )
 
 			break
 	}
@@ -1220,7 +1325,7 @@ function extend( destination, root, accessorOnly )
 {
 	for( var key in root )
 	{
-		if( !root.hasOwnProperty( key ) || !Object.getOwnPropertyDescriptor( root, key ).get && accessorOnly )
+		if( !root.hasOwnProperty( key )  ||  accessorOnly === true && !Object.getOwnPropertyDescriptor( root, key ).get )
 
 			continue
 

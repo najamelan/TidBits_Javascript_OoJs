@@ -78,21 +78,23 @@ function basicTests()
 
 function changeDM()
 {
-	var instance = new TidBits.TestData.GetterSetterB()
+	var   GetterSetterA = namespace.TestData.GetterSetterA
+	    , GetterSetterB = namespace.TestData.GetterSetterB
+	    , instance      = new GetterSetterB()
 
 	this.readDM( 5, 15, instance )
 
 
 	// change Directly
 	//
-	TidBits.TestData.GetterSetterA.ApublicStaticDM++
+	GetterSetterA.ApublicStaticDM++
 
 	this.readDM( 6, 15, instance )
 
 
 	// change inherited
 	//
-	TidBits.TestData.GetterSetterB.ApublicStaticDM++
+	GetterSetterB.ApublicStaticDM++
 	instance.ApublicInstanceDM++
 
 	this.readDM( 7, 16, instance )
@@ -100,41 +102,73 @@ function changeDM()
 
 	// change using parent property
 	//
-	TidBits.TestData.GetterSetterB.GetterSetterA.ApublicStaticDM++
-	instance.GetterSetterA.ApublicInstanceDM++
+	GetterSetterB.GetterSetterA.ApublicStaticDM++
+	instance     .GetterSetterA.ApublicInstanceDM++
 
 	this.readDM( 8, 17, instance )
 
 
 	// change using setter
 	//
-	TidBits.TestData.GetterSetterA.AStaticSet( 9 )
+	GetterSetterA.AStaticSet( 9 )
 
 	this.readDM( 9, 17, instance )
 
 
 	// change using inherited setter
 	//
-	TidBits.TestData.GetterSetterB.AStaticSet( 10 )
-	instance.AInstanceSet( 18 )
+	GetterSetterB.AStaticSet  ( 10 )
+	instance     .AInstanceSet( 18 )
 
 	this.readDM( 10, 18, instance )
 
 
 	// change using inherited setter on parent property
 	//
-	TidBits.TestData.GetterSetterB.GetterSetterA.AStaticSet( 11 )
-	instance.GetterSetterA.AInstanceSet( 19 )
+	GetterSetterB.GetterSetterA.AStaticSet  ( 11 )
+	instance.GetterSetterA     .AInstanceSet( 19 )
 
 	this.readDM( 11, 19, instance )
 
 
 	// change using derived setter
 	//
-	TidBits.TestData.GetterSetterB.BStaticSet( 12 )
-	instance.BInstanceSet( 20 )
+	GetterSetterB.BStaticSet  ( 12 )
+	instance     .BInstanceSet( 20 )
 
 	this.readDM( 12, 20, instance )
+
+
+	// Friend: change inherited
+	//
+	Static.getPrivateInstance( GetterSetterB ).ApublicStaticDM++
+	Static.getPrivateInstance( instance      ).ApublicInstanceDM++
+
+	this.readDM( 13, 21, instance )
+
+
+	// Friend: change by parent property
+	//
+	Static.getPrivateInstance( GetterSetterB ).GetterSetterA.ApublicStaticDM++
+	Static.getPrivateInstance( instance      ).GetterSetterA.ApublicInstanceDM++
+
+	this.readDM( 14, 22, instance )
+
+
+	// Friend: change by inherited setter
+	//
+	Static.getPrivateInstance( GetterSetterB ).AStaticSet  ( 15 )
+	Static.getPrivateInstance( instance      ).AInstanceSet( 23 )
+
+	this.readDM( 15, 23, instance )
+
+
+	// Friend: change by setter on parent property
+	//
+	Static.getPrivateInstance( GetterSetterB ).GetterSetterA.AStaticSet  ( 16 )
+	Static.getPrivateInstance( instance      ).GetterSetterA.AInstanceSet( 24 )
+
+	this.readDM( 16, 24, instance )
 
 }
 
@@ -142,61 +176,96 @@ function changeDM()
 
 function readDM( staticValue, instanceValue, instance )
 {
-	[
+	var   GetterSetterA = namespace.TestData.GetterSetterA
+	    , GetterSetterB = namespace.TestData.GetterSetterB
+
+	;[
 
 			{
-				   input   : TidBits.TestData.GetterSetterA.ApublicStaticDM
+				   input   : GetterSetterA.ApublicStaticDM
 				,  expect  : staticValue
 				,  message : "GetterSetterA.ApublicStaticDM should equal: " + staticValue + "\n"
-				,  errorMsg: "was: " + TidBits.TestData.GetterSetterA.ApublicStaticDM
+				,  errorMsg: "was: " + GetterSetterA.ApublicStaticDM
 			}
 
 
 		,  {
-			     input   : TidBits.TestData.GetterSetterA.AStaticGet()
+			     input   : GetterSetterA.AStaticGet()
 			  ,  expect  : staticValue
 			  ,  message : "GetterSetterA.AStaticGet() should equal: " + staticValue + "\n"
-			  ,  errorMsg: "was: " + TidBits.TestData.GetterSetterA.AStaticGet()
+			  ,  errorMsg: "was: " + GetterSetterA.AStaticGet()
 			}
 
 
 		,  {
-			     input   : TidBits.TestData.GetterSetterB.GetterSetterA.AStaticGet()
+			     input   : GetterSetterB.GetterSetterA.AStaticGet()
 			  ,  expect  : staticValue
 			  ,  message : "GetterSetterB.GetterSetterA.AStaticGet() should equal: " + staticValue + "\n"
-			  ,  errorMsg: "was: " + TidBits.TestData.GetterSetterB.GetterSetterA.AStaticGet()
+			  ,  errorMsg: "was: " + GetterSetterB.GetterSetterA.AStaticGet()
 			}
 
 
 		,  {
-			     input   : TidBits.TestData.GetterSetterB.GetterSetterA.ApublicStaticDM
+			     input   : GetterSetterB.GetterSetterA.ApublicStaticDM
 			  ,  expect  : staticValue
 			  ,  message : "GetterSetterB.GetterSetterA.ApublicStaticDM should equal: " + staticValue + "\n"
-			  ,  errorMsg: "was: " + TidBits.TestData.GetterSetterB.GetterSetterA.ApublicStaticDM
+			  ,  errorMsg: "was: " + GetterSetterB.GetterSetterA.ApublicStaticDM
 			}
 
 
 		,  {
-			     input   : TidBits.TestData.GetterSetterB.ApublicStaticDM
+			     input   : GetterSetterB.ApublicStaticDM
 			  ,  expect  : staticValue
 			  ,  message : "GetterSetterB.ApublicStaticDM should equal: " + staticValue + "\n"
-			  ,  errorMsg: "was: " + TidBits.TestData.GetterSetterB.ApublicStaticDM
+			  ,  errorMsg: "was: " + GetterSetterB.ApublicStaticDM
 			}
 
 
 		,  {
-			     input   : TidBits.TestData.GetterSetterB.AStaticGet()
+			     input   : GetterSetterB.AStaticGet()
 			  ,  expect  : staticValue
 			  ,  message : "GetterSetterB.AStaticGet() should equal: " + staticValue + "\n"
-			  ,  errorMsg: "was: " + TidBits.TestData.GetterSetterB.AStaticGet()
+			  ,  errorMsg: "was: " + GetterSetterB.AStaticGet()
 			}
 
 
 		,  {
-			     input   : TidBits.TestData.GetterSetterB.BStaticGet()
+			     input   : GetterSetterB.BStaticGet()
 			  ,  expect  : staticValue
 			  ,  message : "GetterSetterB.BStaticGet() should equal: " + staticValue + "\n"
-			  ,  errorMsg: "was: " + TidBits.TestData.GetterSetterB.BStaticGet()
+			  ,  errorMsg: "was: " + GetterSetterB.BStaticGet()
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( GetterSetterB ).ApublicStaticDM
+			  ,  expect  : staticValue
+			  ,  message : "Static.getPrivateInstance( GetterSetterB ).ApublicStaticDM should equal: " + staticValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( GetterSetterB ).ApublicStaticDM
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( GetterSetterB ).GetterSetterA.ApublicStaticDM
+			  ,  expect  : staticValue
+			  ,  message : "Static.getPrivateInstance( GetterSetterB ).GetterSetterA.ApublicStaticDM should equal: " + staticValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( GetterSetterB ).GetterSetterA.ApublicStaticDM
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( GetterSetterB ).AStaticGet()
+			  ,  expect  : staticValue
+			  ,  message : "Static.getPrivateInstance( GetterSetterB ).AStaticGet() should equal: " + staticValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( GetterSetterB ).AStaticGet()
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( GetterSetterB ).GetterSetterA.AStaticGet()
+			  ,  expect  : staticValue
+			  ,  message : "Static.getPrivateInstance( GetterSetterB ).GetterSetterA.AStaticGet() should equal: " + staticValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( GetterSetterB ).GetterSetterA.AStaticGet()
 			}
 
 	]
@@ -248,6 +317,38 @@ function readDM( staticValue, instanceValue, instance )
 			  ,  expect  : instanceValue
 			  ,  message : "instance.BInstanceGet() should equal: " + instanceValue + "\n"
 			  ,  errorMsg: "was: " + instance.BInstanceGet()
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( instance ).ApublicInstanceDM
+			  ,  expect  : instanceValue
+			  ,  message : "Static.getPrivateInstance( instance ).ApublicInstanceDM should equal: " + instanceValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( instance ).ApublicInstanceDM
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( instance ).GetterSetterA.ApublicInstanceDM
+			  ,  expect  : instanceValue
+			  ,  message : "Static.getPrivateInstance( instance ).GetterSetterA.ApublicInstanceDM should equal: " + instanceValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( instance ).GetterSetterA.ApublicInstanceDM
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( instance ).AInstanceGet()
+			  ,  expect  : instanceValue
+			  ,  message : "Static.getPrivateInstance( instance ).AInstanceGet() should equal: " + instanceValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( instance ).AInstanceGet()
+			}
+
+
+		,  {
+			     input   : Static.getPrivateInstance( instance ).GetterSetterA.AInstanceGet()
+			  ,  expect  : instanceValue
+			  ,  message : "Static.getPrivateInstance( instance ).GetterSetterA.AInstanceGet() should equal: " + instanceValue + "\n"
+			  ,  errorMsg: "was: " + Static.getPrivateInstance( instance ).GetterSetterA.AInstanceGet()
 			}
 
 	]

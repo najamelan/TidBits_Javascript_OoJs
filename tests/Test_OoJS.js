@@ -17,14 +17,14 @@ if( 'undefined' !== typeof module )
 
 
 
-;(function Class_OoJsTests( namespace, undefined )
+;(function Class_Test_OoJS( namespace, undefined )
 {
 'use strict';
 
-if( namespace[ "OoJsTests" ] ) return
+if( namespace[ "Test_OoJS" ] ) return
 
-    namespace.OoJsTests = OoJsTests
-var Static              = TidBits.OoJs.setupClass( namespace, "OoJsTests", { inherit: "TestGroup", as: "public" } )
+    namespace.Test_OoJS = Test_OoJS
+var Static              = TidBits.OoJs.setupClass( namespace, "Test_OoJS", { inherit: "TestGroup", as: "public" } )
 
 
 Static.Public()
@@ -32,7 +32,7 @@ Static.Public()
 
 // Constructor
 //
-function OoJsTests()
+function Test_OoJS()
 {
 	this.Private( init )
 
@@ -49,6 +49,8 @@ function init()
 {
 	// TODO: Super, typeOf, extend
 
+	this.message += "Running testSuite for OoJs\n"
+
 	this.register( new TidBits.TestSingleClass       () )
 	this.register( new TidBits.TestInheritPrivate    () )
 	this.register( new TidBits.TestInheritProtected  () )
@@ -61,7 +63,7 @@ function init()
 }
 
 
-})( TidBits ); // OoJsTests
+})( TidBits ); // Test_OoJS
 
 
 
@@ -70,7 +72,7 @@ function init()
 
 if( 'undefined' !== typeof module )
 {
-	var group = new TidBits.OoJsTests
+	var group = new TidBits.Test_OoJS
 
 	console.log( group.getResults() )
 

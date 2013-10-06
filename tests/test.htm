@@ -5,29 +5,30 @@
 	<title>Test</title>
 
 	<script src="../oojs.js"                    ></script>
-	<script src="../../UnitTesting/TestCase.js"></script>
+	<script src="../../UnitTesting/TestCase.js" ></script>
 	<script src="../../UnitTesting/TestGroup.js"></script>
 
-	<script src="OoTestData.js"></script>
-	<script src="OoTestBase.js"></script>
-	<script src="TestClass.js"></script>
-	<script src="TestDMConsistency.js"></script>
+	<script src="OoTestData.js"            ></script>
+	<script src="OoTestBase.js"            ></script>
+	<script src="TestClass.js"             ></script>
+	<script src="TestDMConsistency.js"     ></script>
 	<script src="TestGetPrivateInstance.js"></script>
-	<script src="TestInheritPrivate.js"></script>
-	<script src="TestInheritProtected.js"></script>
-	<script src="TestInheritPublic.js"></script>
-	<script src="TestOverrideAccess.js"></script>
+	<script src="TestInheritPrivate.js"    ></script>
+	<script src="TestInheritProtected.js"  ></script>
+	<script src="TestInheritPublic.js"     ></script>
+	<script src="TestOverrideAccess.js"    ></script>
 	<script src="TestOverrideProperties.js"></script>
-	<script src="TestSingleClass.js"></script>
-	<script src="TestVirtuals.js"></script>
-	<script src="OoJsTests.js"></script>
+	<script src="TestSingleClass.js"       ></script>
+	<script src="TestVirtuals.js"          ></script>
+	<script src="TestGetPrivateInstance.js"></script>
+	<script src="Test_OoJS.js"             ></script>
 
 
 	<script>
 
 		function run()
 		{
-			var testGroup = new TidBits.OoJsTests
+			var testGroup = new TidBits.Test_OoJS
 
 			document.getElementById( 'output' ).innerHTML = testGroup.getResults()
 		}

@@ -132,7 +132,7 @@ function compareDataMembers( obj1, obj2, props, exclude, errorMsg )
 function testProperties( obj, props, exclude, message, errorMsg, requireAll )
 {
 	for( var i = props.length - 1; i >= 0; --i )
-
+	{
 		[{
 			   input   : obj[ props[i].name ] !== undefined
 			,  expect  : true
@@ -141,7 +141,7 @@ function testProperties( obj, props, exclude, message, errorMsg, requireAll )
 		}]
 
 		.forEach( this.run )
-
+	}
 
 
 	if( !requireAll )
