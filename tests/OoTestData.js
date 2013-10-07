@@ -963,9 +963,9 @@ Static.Public
 
 // Constructor
 //
-function GetterSetterA( set )
+function GetterSetterA()
 {
-	this.ApublicInstanceDM = set || 15
+	this.ApublicInstanceDM  = 15
 
 
 	return this.Public
@@ -1018,10 +1018,8 @@ Static.Public
 
 // Constructor
 //
-function GetterSetterB( set )
+function GetterSetterB()
 {
-	this.Super( set )
-
 	return this.Public
 	(
 		  BInstanceGet
@@ -1036,11 +1034,11 @@ function getPrivate    (       ){ return Static                             }
 function getPrivateInst( iFace ){ return Static.getPrivateInstance( iFace ) }
 
 
-function BStaticGet(       ){ return Static.ApublicStaticDM  }
-function BStaticSet( value ){ Static.ApublicStaticDM = value }
+function BStaticGet  (       ){ return Static.ApublicStaticDM         }
+function BStaticSet  ( value ){        Static.ApublicStaticDM = value }
 
-function BInstanceGet(       ){ return this.ApublicInstanceDM  }
-function BInstanceSet( value ){ this.ApublicInstanceDM = value }
+function BInstanceGet(       ){ return this.ApublicInstanceDM         }
+function BInstanceSet( value ){        this.ApublicInstanceDM = value }
 
 })( TidBits.TestData ); // GetterSetterB
 
@@ -1282,7 +1280,7 @@ Static.Public
 
 // Constructor
 //
-function OverridePropertiesA( set )
+function OverridePropertiesA()
 {
 	this.privateInstanceDM   = "AprivateInstanceDM"
 	this.protectedInstanceDM = "AprotectedInstanceDM"
@@ -1371,7 +1369,7 @@ Static.Public
 
 // Constructor
 //
-function OverridePropertiesB( set )
+function OverridePropertiesB()
 {
 	this.privateInstanceDM   = "BprivateInstanceDM"
 	this.protectedInstanceDM = "BprotectedInstanceDM"

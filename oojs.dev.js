@@ -756,20 +756,20 @@ function accessModifier( newMembers, accessLvl )
 	    , instRec     = instances[ this.ooID ]
 	    , classID     = instRec.classID
 
-	var info =
-	{
-		  instRec    : instRec
-		, classID    : classID
-		, supers     : instRec.supers
-		, iFace      : instRec.iFace
-		, classMeta  : classes[ classID ]
-		, virtuals   : classes[ classID ].virtuals
-		, layout     : classes[ classID ][ layoutType ]
-		, layoutFlag : classes[ classID ].Static === this  ?  FLAGS.INHERITED_STATIC  :  FLAGS.INHERITED_INSTANCE
-		, layoutType : layoutType
-		, accessLvl  : accessLvl
-		, newMembers : []
-	}
+	    , info        =
+	      {
+	           instRec    : instRec
+	         , classID    : classID
+	         , supers     : instRec.supers
+	         , iFace      : instRec.iFace
+	         , classMeta  : classes[ classID ]
+	         , virtuals   : classes[ classID ].virtuals
+	         , layout     : classes[ classID ][ layoutType ]
+	         , layoutFlag : classes[ classID ].Static === this  ?  FLAGS.INHERITED_STATIC  :  FLAGS.INHERITED_INSTANCE
+	         , layoutType : layoutType
+	         , accessLvl  : accessLvl
+	         , newMembers : []
+	      }
 
 
 
