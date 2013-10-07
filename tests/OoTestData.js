@@ -966,6 +966,7 @@ Static.Public
 function GetterSetterA()
 {
 	this.ApublicInstanceDM  = 15
+	this.AprivateInstanceDM = 0
 
 
 	return this.Public
@@ -2191,12 +2192,13 @@ GetterSetterA :
 
 	,  properties :
 		[
-			  { name: "AStaticGet"       , type:"method", value: 5 , access: "public", scope: "static"   }
-			, { name: "AStaticSet"       , type:"method"           , access: "public", scope: "static"   }
-			, { name: "ApublicStaticDM"  , type:"DM"    , value: 5 , access: "public", scope: "static"   }
-			, { name: "AInstanceGet"     , type:"method", value: 15, access: "public", scope: "instance" }
-			, { name: "AInstanceSet"     , type:"method"           , access: "public", scope: "instance" }
-			, { name: "ApublicInstanceDM", type:"DM"    , value: 15, access: "public", scope: "instance" }
+			  { name: "AStaticGet"        , type:"method", value: 5 , access: "public" , scope: "static"   }
+			, { name: "AStaticSet"        , type:"method"           , access: "public" , scope: "static"   }
+			, { name: "ApublicStaticDM"   , type:"DM"    , value: 5 , access: "public" , scope: "static"   }
+			, { name: "AInstanceGet"      , type:"method", value: 15, access: "public" , scope: "instance" }
+			, { name: "AInstanceSet"      , type:"method"           , access: "public" , scope: "instance" }
+			, { name: "ApublicInstanceDM" , type:"DM"    , value: 15, access: "public" , scope: "instance" }
+			, { name: "AprivateInstanceDM", type:"DM"    , value: 0 , access: "private", scope: "instance" }
 		]
 },
 

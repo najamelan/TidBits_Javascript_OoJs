@@ -775,7 +775,7 @@ function accessModifier( newMembers, accessLvl )
 
 	// 2. Store data members
 	//
-	storeDataMembers.call( this, info )
+	var mustCreatePrivate = storeDataMembers.call( this, info )
 
 
 
@@ -873,6 +873,16 @@ function accessModifier( newMembers, accessLvl )
 
 
 
+	// if we did storeDataMembers, we must also create the private accessors in case the user never calls this.Private()
+	//
+	if( mustCreatePrivate && !( accessLvl & FLAGS.PRIVATE ) )
+	{
+		info.accessLvl = FLAGS.PRIVATE
+
+		info.layout.each( createAccessors, this, info )
+	}
+
+
 
 	// if this is Public() and we are an instance, return the instance
 	//
@@ -913,6 +923,9 @@ function storeDataMembers( info )
 
 		delete this[ key ]
 	}
+
+
+	return true
 }
 
 
