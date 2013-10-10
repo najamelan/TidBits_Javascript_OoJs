@@ -334,7 +334,7 @@ function setupClass( callerNamespace, sub, bases )
 
 
 
-		subCl.prototype = Object.create( callerNamespace[ bases[ 0 ].inherit ].prototype )
+		subCl.prototype = Object.create( bases[ 0 ].namespace[ bases[ 0 ].inherit ].prototype )
 
 		getAllBases( Static.ooID )
 	}
@@ -568,17 +568,17 @@ function _Super()
 
 	for( var i = classMeta.bases.length - 1; i >= 0; --i )
 	{
-		var base = classMeta.bases[ i ].inherit
+		var base = classMeta.bases[ i ]
 
 
-		if( !classIDs[ base ] )  // base is not OoJs
+		if( !classIDs[ base.inherit ] )  // base is not OoJs
 
 			continue
 
 
-		fNewConstr.prototype = classMeta.namespace[ base ].prototype
+		fNewConstr.prototype = base.namespace[ base.inherit ].prototype
 
-		var iFace = new fNewConstr( classMeta.namespace[ base ], arguments )
+		var iFace = new fNewConstr( base.namespace[ base.inherit ], arguments )
 
 		instances[ this.ooID ].supers.push( iFace.ooID )
 	}
