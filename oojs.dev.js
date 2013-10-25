@@ -1145,7 +1145,7 @@ function fixVirtual( info, name, ownerID )
 				  enumerable  : true
 				, configurable: true
 
-				, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )
+				, get: ( function( ref, _this ){ return function virtualMethod(){ return ref.bind( _this ) } } )
 
 							( info.layout.get( name, info.classID ).reference, this )
 			}
@@ -1243,10 +1243,10 @@ function createAccessors( that, info )
 						  enumerable  : true
 						, configurable: true
 
-						, get: ( function( key, ownerID ){ return function()        { return instances[ ownerID ].state[ key ]  } } )( this.name, ownerID )
+						, get: ( function( key, ownerID ){ return function getter()        { return instances[ ownerID ].state[ key ]  } } )( this.name, ownerID )
 
 
-						, set: ( function( key, ownerID ){ return function( value ) { instances[ ownerID ].state[ key ] = value } } )( this.name, ownerID )
+						, set: ( function( key, ownerID ){ return function setter( value ) { instances[ ownerID ].state[ key ] = value } } )( this.name, ownerID )
 					}
 			)
 		}
@@ -1265,7 +1265,7 @@ function createAccessors( that, info )
 						  enumerable  : true
 						, configurable: true
 
-						, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( this.reference, that )
+						, get: ( function( ref, _this ){ return function method(){ return ref.bind( _this ) } } )( this.reference, that )
 					}
 			)
 		}
