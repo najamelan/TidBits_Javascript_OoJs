@@ -223,6 +223,8 @@ function InstanceRecord( _this, classID, iFace )
 	this.classID = classID
 	this.iFace   = iFace
 	this.state   = {}
+	this.methods = {}
+
 	this.supers  = []
 	this.flags   = 0
 }
@@ -1254,6 +1256,15 @@ function createAccessors( that, info )
 
 		else // it is a method
 		{
+			// create the bound function if it does not exist:
+			//
+
+			var   parentID = findParent( ownerID, this.ownerID )
+			    , methods  = instances[ parentID ].methods
+
+			methods[ this.name ] = methods[ this.name ] || this.reference.bind( that )
+
+
 			// don't set a setter, so methods can't be overridden
 			//
 			Object.defineProperty
@@ -1265,7 +1276,7 @@ function createAccessors( that, info )
 						  enumerable  : true
 						, configurable: true
 
-						, get: ( function( ref, _this ){ return function method(){ return ref.bind( _this ) } } )( this.reference, that )
+						, get: (function( methoda ){ return function method(){ return methoda } })( methods[ this.name ] )
 					}
 			)
 		}
