@@ -5,7 +5,7 @@
 var TidBits = TidBits || {} // our namespace
 
 
-;(function class_OoJs( namespace )
+;(function class_OoJs( namespace, undefined )
 {
 'use strict';
 
@@ -13,11 +13,11 @@ if( namespace[ "OoJs" ] ) return
 
 namespace[ "OoJs" ] = OoJs
 
-// Static.ooID = classMeta
+// Static.ooID : classMeta
 //
 var classes  = {}
 
-// this.ooID = { classID, State = { membername : value } }
+// this.ooID : InstanceRecord
 //
 var instances= {}
 
@@ -27,67 +27,232 @@ var instances= {}
 var classIDs = {}
 
 
-function ClassMeta( namespace, Static, name, id, iface )
+/** @enum {number}
+ **/
+var FLAGS =
 {
-	this.Static         = Static
-	this.IFace          = iface
-	this.Class          = namespace[ name ]
-	this.name           = name
-	this.id             = id
-	this.bases          = []
-	this.staticLayout   = null
-	this.instanceLayout = null
-	this.layoutInstance = null
-	this.inherited      = { staticLayout: false, instanceLayout: false }
-	this.virtuals       = {}
-	this.namespace      = namespace
+	  PRIVATE              : 1 <<  0
+	, PROTECTED            : 1 <<  1
+	, PUBLIC               : 1 <<  2
+	, VIRTUAL              : 1 <<  3
+	, INHERITED_INSTANCE   : 1 <<  4
+	, INHERITED_STATIC     : 1 <<  5
+	, BASE_ACCESSORS       : 1 <<  6
+	, STORED               : 1 <<  7
+	, SUPERS               : 1 <<  8
+	, ACTIVE               : 1 <<  9
 }
 
 
-function IntancesRecord( _this, classID, iFace )
+function ClassLayout( classID, type )
+{
+	// all data members are to be considered private!
+	//
+	this.classID = classID
+	this.type    = type
+
+	this.table = {}
+}
+
+
+ClassLayout.prototype.get = function get( name, owner )
+{
+	name = mangle( name )
+
+
+	if( this.table[ name ] === undefined )
+
+		return undefined
+
+
+	if( owner === undefined )
+
+		for( var i = this.table[ name ].length - 1; i >= 0; --i )
+
+			if( this.table[ name ][ i ].flags & FLAGS.ACTIVE )
+
+				return this.table[ name ][ i ]
+
+
+	if( typeof owner === "string" )
+
+		owner = classIDs[ owner ]
+
+
+
+	for( i = this.table[ name ].length - 1; i >= 0; --i )
+
+		if( this.table[ name ][ i ].ownerID === owner )
+
+			return this.table[ name ][ i ]
+
+
+	return undefined
+}
+
+
+
+ClassLayout.prototype.getAll = function get( name )
+{
+	return this.table[ mangle( name ) ]
+}
+
+
+ClassLayout.prototype.setActive = function setActive( name, owner )
+{
+	console.assert( this.table[ name ] !== undefined )
+
+
+	if( typeof owner === "string" )
+
+		owner = classIDs[ owner ]
+
+
+	for( var i = this.table[ name ].length - 1; i >= 0; --i )
+	{
+		if( this.table[ name ][ i ].ownerID === owner )
+
+			this.table[ name ][ i ].flags |= FLAGS.ACTIVE
+
+		else
+
+			this.table[ name ][ i ].flags &= ~FLAGS.ACTIVE
+
+	}
+}
+
+
+
+ClassLayout.prototype.set = function set( record )
+{
+	var name = mangle( record.name )
+
+	console.assert( record.ownerID )
+	console.assert( record.name    )
+
+
+	if( this.table[ name ] === undefined )
+
+		this.table[ name ] = [ record ]
+
+
+
+	else if( this.get( unmangle( name ), record.ownerID ) )
+
+		extend( this.get( unmangle( name ), record.ownerID ), record )
+
+
+	else
+
+		this.table[ name ].push( record )
+
+
+	if( record.flags & FLAGS.ACTIVE )
+
+		this.setActive( name, record.ownerID )
+}
+
+
+
+/* Call a function on each layout record (order is undefined)
+ * the callback will receive the record as "this"
+ * extra parameters will be passed to the callback
+ *
+ */
+ClassLayout.prototype.each = function each()
+{
+	var callback = Array.prototype.splice.call( arguments, 0, 1 ).pop()
+
+	var ret = []
+
+
+	for( var name in this.table )
+	{
+
+		if( !this.table.hasOwnProperty( name ) )
+
+			continue
+
+
+		for( var i = this.table[ name ].length - 1; i >= 0; --i )
+		{
+			ret.push( callback.apply( this.table[ name ][ i ], arguments ) )
+		}
+	}
+
+	return ret
+}
+
+
+
+// otherwise we get in trouble when people want to create properties called push or toString etc...
+//
+function   mangle( name ){ return "OoJs__" + name     }
+function unmangle( name ){ return name.substring( 6 ) }
+
+
+
+
+
+
+
+function ClassMeta( namespace, Static, name, id, iface )
+{
+	this.Static            = Static
+	this.IFace             = iface
+	this.Class             = namespace[ name ]
+	this.name              = name
+	this.id                = id
+	this.bases             = []
+	this.allBases          = []
+	this.accessibleBases   = []
+	this.inaccessibleBases = []
+	this.friends           = []
+	this.staticLayout      = new ClassLayout( Static.ooID, "staticLayout"   )
+	this.instanceLayout    = new ClassLayout( Static.ooID, "instanceLayout" )
+	this.layoutInstance    = null
+	this.flags             = 0
+	this.virtuals          = {}
+	this.namespace         = namespace
+}
+
+
+function InstanceRecord( _this, classID, iFace )
 {
 	this._this   = _this
 	this.classID = classID
 	this.iFace   = iFace
 	this.state   = {}
+	this.methods = {}
+
 	this.supers  = []
 	this.flags   = 0
 }
 
-
-/** @enum {number}
- **/
-var FLAGS =
-{
-	  PRIVATE            : 0x001
-	, PROTECTED          : 0x002
-	, PUBLIC             : 0x004
-	, VIRTUAL            : 0x008
-	, INHERITED_INSTANCE : 0x010
-	, INHERITED_STATIC   : 0x020
-	, STORED             : 0x040
-}
-
 OoJs.setupClass = setupClass
 OoJs.typeOf     = typeOf
+OoJs.extend     = extend
 
 /** @expose */
 function OoJs(){ return null } // Can't instanciate
 
 
-function setupClass( callerNamespace, sub, base )
+function setupClass( callerNamespace, sub, bases )
 {
 	var subCl = callerNamespace[ sub ]
 
 	function Static(){}
 
+
 	Object.defineProperty( Static, "Public"            , { value: Public             } )
 	Object.defineProperty( Static, "Protected"         , { value: Protected          } )
 	Object.defineProperty( Static, "Private"           , { value: Private            } )
+	Object.defineProperty( Static, "Friends"           , { value: Friends            } )
 	Object.defineProperty( Static, "getPrivateInstance", { value: getPrivateInstance } )
 
 	Object.defineProperty( Static, "ooID", { value: uid()       } )
 	Object.defineProperty( subCl , "ooID", { value: Static.ooID } )
+
 
 	// makes your life easier when debugging things
 	//
@@ -97,6 +262,7 @@ function setupClass( callerNamespace, sub, base )
 		, "toString"
 		, { value: function toString(){ return "function Static(){ /*" + sub + "*/ }" } }
 	)
+
 
 	Object.defineProperty
 	(
@@ -109,39 +275,134 @@ function setupClass( callerNamespace, sub, base )
 	// Keep the meta data of our classes, so when something wants to inherit, we have the relevant information
 	//
 	classes  [ Static.ooID ] = new ClassMeta     ( callerNamespace, Static, sub, Static.ooID, IFace )
-	instances[ Static.ooID ] = new IntancesRecord( Static, Static.ooID, subCl      )
+	instances[ Static.ooID ] = new InstanceRecord( Static, Static.ooID, subCl                       )
 	classIDs [     sub     ] = Static.ooID
 
-	if( 'undefined' !== typeof base )
+	/// Structure of that bases in classMeta
+	//
+	//  an array representing one item per direct base class
+	//  every item is the array of bases from that base class or an array with the base object (inherit, as...)
+	//
+	// baseobj = { name: "MyClass", bases: [] }
+
+	if( bases !== undefined )
 	{
-		subCl.prototype              = Object.create( callerNamespace[ base ].prototype )
-		classes[ Static.ooID ].bases = Array( base )
 
-
-		// if supports OoJs
+		// TODO: do some validation
 		//
-		if( classIDs[ base ] )
+		if( !Array.isArray( bases ) )
 
-			instances[ Static.ooID ].supers.push( classIDs[ base ] )
+			bases = Array( bases )
+
+
+
+		for( var i = bases.length - 1; i >= 0; --i )
+		{
+			var defaults = { as: "private", namespace: callerNamespace }
+
+
+			if( typeof bases[ i ] === "string" )
+
+				bases[ i ] = { inherit: bases[ i ] }
+
+
+			bases[ i ] = extend( defaults, bases[ i ] )
+
+
+			if( [ "public", "private", "protected" ].indexOf( bases[ i ].as ) < 0 )
+
+				throw new Error
+				(
+					  "Invalid class access level in class: " + sub
+					+ ". Trying to inherit " + bases[ i ].inherit + " as " + bases[ i ].as
+					+ ". Only 'public', 'private' or 'protected' are supported"
+				)
+		}
+
+
+		classes[ Static.ooID ].bases = bases
+
+
+
+		// if they are OoJs, store them in supers
+		//
+		var id
+
+		for( i = bases.length - 1;  i >= 0;  --i )
+
+			if( ( id = classIDs[ bases[ i ].inherit ] ) )
+
+				instances[ Static.ooID ].supers.push( id )
+
+
+
+		subCl.prototype = Object.create( bases[ 0 ].namespace[ bases[ 0 ].inherit ].prototype )
+
+		getAllBases( Static.ooID )
 	}
 
-	Object.defineProperty( subCl.prototype, "constructor", { configurable: true, value: subCl      } )
-	Object.defineProperty( subCl.prototype, "Public"     , { configurable: true, value: Public     } )
-	Object.defineProperty( subCl.prototype, "Protected"  , { configurable: true, value: Protected  } )
-	Object.defineProperty( subCl.prototype, "Private"    , { configurable: true, value: Private    } )
-	Object.defineProperty( subCl.prototype, "Super"      , { configurable: true, value: Super      } )
-	Object.defineProperty( subCl.prototype, "Virtual"    , { configurable: true, value: Virtual    } )
+	// TODO: test what prototype is if there is no base and on IFace do we end up with Public, ...?
+
+	Object.defineProperty( subCl.prototype, "constructor", { configurable: true, value: subCl     } )
+	Object.defineProperty( subCl.prototype, "Public"     , { configurable: true, value: Public    } )
+	Object.defineProperty( subCl.prototype, "Protected"  , { configurable: true, value: Protected } )
+	Object.defineProperty( subCl.prototype, "Private"    , { configurable: true, value: Private   } )
+	Object.defineProperty( subCl.prototype, "Super"      , { configurable: true, value: Super     } )
+	Object.defineProperty( subCl.prototype, "Virtual"    , { configurable: true, value: Virtual   } )
 
 
 	// is the interface which will be returned by the constructor of the class
 	//
 	function IFace (){}
 
-	IFace .prototype = Object.create( subCl.prototype )
+	IFace.prototype = Object.create( subCl.prototype )
 
 
 	return Static
 }
+
+
+function getAllBases( classID )
+{
+	var   classMeta         = classes[ classID ]
+	    , accessibleBases   = classMeta.accessibleBases
+	    , inaccessibleBases = classMeta.inaccessibleBases
+	    , allBases          = classMeta.allBases
+	    , dummy             = []
+
+
+	for( var i = classMeta.bases.length - 1; i >= 0; --i )
+	{
+		var   baseName = classMeta.bases[ i ].inherit
+		    , baseID   = classIDs[ baseName ]
+
+		// only store oojs bases for now
+		//
+		if( !baseID ) continue
+
+
+		accessibleBases.push( baseName )
+		allBases       .push( baseName )
+
+		dummy.push.apply( accessibleBases  , classes[ baseID ].accessibleBases   )
+		dummy.push.apply( inaccessibleBases, classes[ baseID ].inaccessibleBases )
+		dummy.push.apply( allBases         , classes[ baseID ].allBases          )
+
+
+		// remove those that the parent inherited as private
+		//
+		for( var j = classes[ baseID ].bases.length - 1; j >= 0; --j )
+		{
+			var   ancester = classes[ baseID ].bases[ j ]
+			    , toRemove = accessibleBases.indexOf( ancester.inherit )
+
+			if( ancester.as === "private"  &&  toRemove !== -1 )
+
+				dummy.push.apply( inaccessibleBases, classMeta.accessibleBases.splice( toRemove, 1 ) )
+		}
+	}
+}
+
 
 
 function Public   (){ return accessModifier.call( this, arguments, FLAGS.PUBLIC    ) }
@@ -149,27 +410,104 @@ function Protected(){        accessModifier.call( this, arguments, FLAGS.PROTECT
 function Private  (){        accessModifier.call( this, arguments, FLAGS.PRIVATE   ) }
 
 
+// Set the classes that are allowed to access the private object
+//
+function Friends()
+{
+	var classMeta = classes[ instances[ this.ooID ].classID ]
+
+	// prevent cheating since we rely on ooID
+	//
+	if( this !== classMeta.Static )
+
+		return
+
+
+	classMeta.friends = [].concat( Array.prototype.slice.call( arguments, 0, arguments.length ) )
+}
+
+
 // Allow access to the private instance within a class if you have the interface
 //
 function getPrivateInstance( iFace )
 {
-	var parent
-
-	// prevent cheating
+	// prevent cheating since we rely on ooID
 	//
-	if( this !== classes[ instances[ this.ooID ].classID ].Static )
+	if( this  !==  classes[ instances[ this.ooID ].classID ].Static )
 
 		return null
 
 
-	if( ( parent = findParent( iFace.ooID, this.ooID ) ) )
+	// find the private objects
+	//
+	var   access   = []
+	    , id       = iFace.ooID
+	    , noSelf   = false
+	    , result   = null
 
-		return instances[ parent ]._this
+
+	while( ( id = findParent( id, this.ooID, true, noSelf ) ) )
+	{
+		access.unshift( instances[ id ]._this )
+
+		noSelf = true
+	}
 
 
-	else
+	// combine the different parts of access
+	//
+	if( access.length === 1 )
 
-		return null
+		return access.pop()
+
+
+	else if( access.length > 1 )
+	{
+		// need to call with an empty object in order not to change the objects in the array
+		//
+		result = access.reduce( extend, {} )
+
+
+		// fix the parent accessors to hold the private members as well
+		//
+		for( var i = access.length - 1; i >= 0; --i )
+		{
+			var classMeta = classes[ instances[ access[ i ].ooID ].classID ]
+
+			if( result[ classMeta.name ] )
+			{
+				// get all the private members, will invalidate the virtual methods
+				//
+				extend( result[ classMeta.name ], access[ i ], true /*accessor properties only*/ )
+
+
+				// fix the virtuals
+				//
+				var layoutType = classMeta.Static === access[ i ]  ?  "staticLayout"  :  "instanceLayout"
+
+
+				classMeta[ layoutType ].each( function createVirtuals()
+				{
+					if( this.flags & FLAGS.VIRTUAL )
+
+						Object.defineProperty
+						(
+							  result[ classMeta.name ]
+							, this.name
+
+							,  {
+									  enumerable  : true
+									, configurable: true
+
+									, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( this.reference, access[ i ] )
+								}
+						)
+				})
+			}
+		}
+	}
+
+	return result
 }
 
 
@@ -180,7 +518,7 @@ function typeOf( object ){ return classes[ instances[ object.ooID ].classID ].na
 
 // First deals with registering the methods as virtual, then returns an array for Public, Private or Protected
 //
-function Virtual  ()
+function Virtual()
 {
 	accessModifier.call( this, arguments, FLAGS.VIRTUAL )
 
@@ -196,9 +534,16 @@ function Virtual  ()
 //
 function Super()
 {
-	if( instances[ this.ooID ]   &&   0 !== instances[ this.ooID ].supers.length )
+	if( instances[ this.ooID ]   &&   instances[ this.ooID ].flags & FLAGS.SUPERS )
 
-		throw new Error( "This object already has a parent. You have to call Super before calling Public or Protected." )
+		throw new Error( "This object already has a parent. You have to call Super before calling Public, Private or Protected." )
+
+
+	// 1. Make sure object is initialized
+	//
+	if( this.ooID === undefined )
+
+		initialize.call( this )
 
 
 	_Super.apply( this, arguments )
@@ -206,85 +551,45 @@ function Super()
 
 
 /// function _Super
-//  makes sure 'this' is initialized and it has the needed parents
-//
-// The difference between an inherited public interface and one created directly by a client
-// is that the inherited supers property should also allow subclass code to access protected
-// members. Since Super() can only be called from a private object, we know this instantiation
-// should also have protected members on it
+//  makes sure 'this' has the needed parents
 //
 function _Super()
 {
-	var constructor = this.prototype ? this.prototype.constructor : this.constructor
-
-	// if it is not an instance, no business here
-	//
-	if( classes[ instances[ constructor.ooID ].classID ].Static === this )
+	if( instances[ this.ooID ].flags & FLAGS.SUPERS )
 
 		return
 
 
-	// if this is the first contact
-	//
-	if( 'undefined' === typeof this.ooID )
-	{
-		initialize.call( this )
-	}
+	instances[ this.ooID ].flags |= FLAGS.SUPERS
 
 
 	// if it has an OoJs base and Super hasn't been called yet
 	//
-	var classID   = instances[ this.ooID ].classID
-	var classMeta = classes[ classID ]
-	var iFace
+	var classMeta = classes[ instances[ this.ooID ].classID ]
+
 
 	for( var i = classMeta.bases.length - 1; i >= 0; --i )
 	{
 		var base = classMeta.bases[ i ]
 
-		if
-		(
-			   classIDs[ base ]            // base is OoJs
-			&& 0 === instances[ this.ooID ].supers.length  // there is no parent
-		)
-		{
 
-			this[ base ] = {}
+		if( !classIDs[ base.inherit ] )  // base is not OoJs
 
-			fNewConstr.prototype = classMeta.namespace[ base ].prototype
-
-			iFace = new fNewConstr( classMeta.namespace[ base ], arguments )
-
-			instances[ this.ooID ].supers.push( iFace.ooID )
+			continue
 
 
-			// allow this to call methods on super via supers
-			//
-			addProtected.call( instances[ iFace.ooID ]._this )
+		fNewConstr.prototype = base.namespace[ base.inherit ].prototype
 
-			this[ base ] = iFace
-		}
+		var iFace = new fNewConstr( base.namespace[ base.inherit ], arguments )
+
+		instances[ this.ooID ].supers.push( iFace.ooID )
 	}
 }
 
-
-// add the protected members to the public iFace for usage with _super within the class
-// allows calling protected superclass methods on this.base.xxx
-//
-function addProtected()
-{
-	var info =
-	{
-		  instRec: instances[ this.ooID ]
-		, layout : classes[ instances[ this.ooID ].classID ].instanceLayout
-		, iFace  : instances[ this.ooID ].iFace
-	}
-
-	createAccessors.call( this, info, true )
-}
 
 
 // dummy constructor to pass an array of parameters to another constructor
+// allows passing an array of arguments to a constructor
 //
 function fNewConstr( constructor, aArgs )
 {
@@ -292,60 +597,217 @@ function fNewConstr( constructor, aArgs )
 }
 
 
-/// function accessModifier
+
+function copyInheritedProps( destination, parentRec, info )
+{
+	var parentClassId = parentRec.classID
+
+
+	if( this.flags & FLAGS.PRIVATE )
+	{
+		// if it is an own property of the parent, or it is on an inaccessible base, do nothing
+		//
+		if
+		(
+			   this.ownerID === parentClassId
+			|| info.classMeta.accessibleBases.indexOf( classes[ this.ownerID ].name ) === -1
+		)
+
+			return
+
+
+		// else, it's on an accessible base, and so we have to remove it
+		//
+		delete destination[ classes[ this.ownerID ].name ][ this.name ]
+
+		return
+	}
+
+
+	// copy if: it is an own property of the class,
+	// or if no own property exist (then the inherited one ends up on the main object)
+	//
+	if
+	(
+		   this.ownerID === parentClassId
+		|| !classes[ parentClassId ][ info.layoutType ].get( this.name, parentClassId )
+	)
+
+		Object.defineProperty( destination, this.name, Object.getOwnPropertyDescriptor( parentRec._this, this.name ) )
+
+
+	// else if it is from a inaccessible base, but made public or protected, create the base object and put it on
+	//
+	if( info.classMeta.inaccessibleBases.indexOf( classes[ this.ownerID ].name ) !== -1 )
+	{
+		var baseName = classIDs[ this.ownerID ]
+
+		destination[ baseName ] = destination[ baseName ] || {}
+
+		Object.defineProperty
+		(
+			  destination[ baseName ]
+			, this.name
+			, Object.getOwnPropertyDescriptor( parentRec._this[ baseName ], this.name )
+		)
+	}
+}
+
+
+// Create properties for the base classes such as Static.Base and this.Base
+// in order to allow accessing base versions of members
 //
-// - call _Super to assure the object is initialized and has its base classes
-// - store the data members of this class in instances
-// - inherit the layout from base classes
-// - store the layout of the current class
-// - change the pointers to virtual functions in the base classes if we override them
-// - create accessor properties on this and iFace
-// - if it was a call to this.Public, return the interface
-//
+function inheritProperties( info )
+{
+	if( info.classMeta.bases.length === 0  ||  info.instRec.flags & FLAGS.BASE_ACCESSORS )
+
+		return
+
+
+	info.instRec.flags |= FLAGS.BASE_ACCESSORS
+
+
+	// just a single inheritance version
+	// loop through parent
+	//
+	var   parentRec         = instances[ info.supers[ 0 ] ]
+	    , accessibleBases   = classes[ info.instRec.classID ].accessibleBases
+
+
+	// Copy the accessors for all the accessible bases from the parent
+	//
+	for( var i = accessibleBases.length - 1; i >= 0; --i )
+	{
+		// do not try to copy the parent itself
+		//
+		if( classes[ parentRec.classID ].name === accessibleBases[ i ] )
+
+			continue
+
+
+		this[ accessibleBases[ i ] ] = extend( {}, parentRec._this[ accessibleBases[ i ] ], true /*accessors only*/ )
+	}
+
+
+	// copy the properties from the parent object itself
+	// copy the public or protected properties on inaccessible base classes
+	// remove stuff from accessible bases that has been turned private
+	//
+	classes[ parentRec.classID ][ info.layoutType ].each( copyInheritedProps, this, parentRec, info )
+
+
+	var baseName = classes[ parentRec.classID ].name
+
+	// now our object looks like what's left of the parent after we removed the private parts
+	// copy it under this[ baseName ]
+	//
+	this[ baseName ] = extend( {}, this, true /*accessors only*/ )
+
+	// get the parent interface
+	//
+	for( i = info.classMeta.bases.length - 1; i >= 0; --i )
+	{
+		if( info.classMeta.bases[i].inherit === baseName )
+		{
+			// if we inherit this parent as public, copy it's interface over to ours
+			//
+			if( info.classMeta.bases[i].as === "public" )
+			{
+				extend( info.iFace, parentRec.iFace )
+
+				info.iFace[ baseName ] = extend( {}, parentRec.iFace, true /*accessors only*/ )
+
+				break
+			}
+		}
+	}
+}
+
+
+
+
+/*
+ * function accessModifier
+ *
+ * 1. Make sure object is initialized
+ * 2. Store data members
+ * 3. Instantiate base classes
+ * 4. Copy base class properties
+ * 5. Remove baseclass properties that are made private by the direct parent
+ * 6. Register inherited layout
+ * 7. Register layout if instance and first call
+ * 8. Create accessors for own properties
+ * 9. Resolve virtual
+ * 10. Return iFace if this.Public
+ *
+ */
 function accessModifier( newMembers, accessLvl )
 {
 
-	_Super.apply( this )
+	// 1. Make sure object is initialized
+	//
+	if( this.ooID === undefined )
+
+		initialize.call( this )
+
 
 
 	// Store some often used properties
 	//
-	var layoutType  = classes[ instances[ this.ooID ].classID ].Static === this  ?  "staticLayout"  :  "instanceLayout"
+	var   layoutType  = classes[ instances[ this.ooID ].classID ].Static === this  ?  "staticLayout"  :  "instanceLayout"
+	    , instRec     = instances[ this.ooID ]
+	    , classID     = instRec.classID
 
-	var info =
-	{
-		  instRec       : instances[ this.ooID ]
-		, classID       : instances[ this.ooID ].classID
-		, supers        : instances[ this.ooID ].supers
-		, iFace         : instances[ this.ooID ].iFace
-		, classMeta     : classes[ instances[ this.ooID ].classID ]
-		, virtuals      : classes[ instances[ this.ooID ].classID ].virtuals
-		, layout        : classes[ instances[ this.ooID ].classID ][ layoutType ]
-		, layoutTypeFlag: classes[ instances[ this.ooID ].classID ].Static === this  ?  FLAGS.INHERITED_STATIC  :  FLAGS.INHERITED_INSTANCE
-		, layoutType    : layoutType
-		, accessLvl     : accessLvl
-	}
+	    , info        =
+	      {
+	           instRec    : instRec
+	         , classID    : classID
+	         , supers     : instRec.supers
+	         , iFace      : instRec.iFace
+	         , classMeta  : classes[ classID ]
+	         , virtuals   : classes[ classID ].virtuals
+	         , layout     : classes[ classID ][ layoutType ]
+	         , layoutFlag : classes[ classID ].Static === this  ?  FLAGS.INHERITED_STATIC  :  FLAGS.INHERITED_INSTANCE
+	         , layoutType : layoutType
+	         , accessLvl  : accessLvl
+	         , newMembers : []
+	      }
 
 
-	// deal with private data members once per instance
+
+	// 2. Store data members
 	//
-	storePrivate.call( this, info )
+	var mustCreatePrivate = storeDataMembers.call( this, info )
 
 
 
+	// 3. Instantiate base classes
+	//
+	if( layoutType === "instanceLayout" )
+
+		_Super.call( this )
+
+
+
+	// 4. Copy base class properties
+	// 5. Remove baseclass properties that are made private by the direct parent
+	//
+	inheritProperties.call( this, info )
+
+
+	// 6. Register inherited layout
 	// resolve all inherited stuff and write them to the layout once per layout type per class
 	//
 	inherit.call( this, info )
 
 
 
-
+	// 7. Register layout
+	// we keep track of the id of the first instance of this class, so we will no longer execute this
+	// after the constructor of that instance is finished
+	//
 	var member
 
-	// store the layout of the class
-	// we keep track of the id of the first object of this class, so we will no longer execute this
-	// after the constructor of that object is finished
-	//
 	if( null === info.classMeta.layoutInstance  ||  this.ooID === info.classMeta.layoutInstance )
 	{
 		if( layoutType === "instanceLayout" )
@@ -365,11 +827,11 @@ function accessModifier( newMembers, accessLvl )
 				//
 				for( var j = member.length - 2; j >= 0; --j )
 
-					accessHelper.call( this, info, member[j] )
+					updateLayout.call( this, info, member[j] )
 
 			else
 			{
-				accessHelper.call( this, info, member )
+				updateLayout.call( this, info, member )
 			}
 		}
 	}
@@ -392,15 +854,16 @@ function accessModifier( newMembers, accessLvl )
 			var name = /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
 
 
-			if( 'undefined' !== typeof info.virtuals[ name ] )
+			if( info.virtuals[ name ] !== undefined )
 
 				for( var m = info.virtuals[ name ].length - 1; m >= 0; --m )
 
-					if( info.virtuals[ name ][ m ].ownerClass !== info.classID )
+					if( info.virtuals[ name ][ m ].ownerID !== info.classID )
 
-						fixVirtual.call( this, info, name, info.virtuals[ name ][ m ].ownerClass )
+						fixVirtual.call( this, info, name, info.virtuals[ name ][ m ].ownerID )
 		}
 	}
+
 
 
 	// set the actual accessor properties
@@ -408,14 +871,30 @@ function accessModifier( newMembers, accessLvl )
 	//
 	if( FLAGS.VIRTUAL !== accessLvl )
 
-		createAccessors.call( this, info )
+		info.layout.each( createAccessors, this, info )
+
+
+
+	// if we did storeDataMembers, we must also create the private accessors in case the user never calls this.Private()
+	//
+	if( mustCreatePrivate && !( accessLvl & FLAGS.PRIVATE ) )
+	{
+		info.accessLvl = FLAGS.PRIVATE
+
+		info.layout.each( createAccessors, this, info )
+	}
+
 
 
 	// if this is Public() and we are an instance, return the instance
 	//
 	if( accessLvl === FLAGS.PUBLIC  &&  layoutType === 'instanceLayout' )
 
-		return instances[ this.ooID ].iFace
+		return info.iFace
+
+		// If you want to check if the tests still run when the interface is sealed, use this
+		//
+		// return Object.seal( info.iFace )
 }
 
 
@@ -423,7 +902,7 @@ function accessModifier( newMembers, accessLvl )
 // take the members on the object and store them in the layout, and store the data in instances
 // then delete the original property
 //
-function storePrivate( info )
+function storeDataMembers( info )
 {
 	if( info.instRec.flags & FLAGS.STORED )
 
@@ -433,14 +912,6 @@ function storePrivate( info )
 	instances[ this.ooID ].flags |= FLAGS.STORED
 
 
-	var firstClassRun =  null === info.layout
-
-
-	if( firstClassRun )
-
-		info.layout = info.classMeta[ info.layoutType ] = new Object
-
-
 	for( var key in this )
 	{
 		if( ! this.hasOwnProperty( key ) )
@@ -448,9 +919,9 @@ function storePrivate( info )
 			continue
 
 
-		if( firstClassRun )
+		if( info.layout.get( key, info.classID ) === undefined )
 
-			registerMember( info.layout, key, null, FLAGS.PRIVATE, info.classID, true )
+			info.layout.set( { name: key, flags: FLAGS.PRIVATE | FLAGS.ACTIVE, ownerID: info.classID, setterID: info.classID } )
 
 
 
@@ -459,6 +930,8 @@ function storePrivate( info )
 		delete this[ key ]
 	}
 
+
+	return true
 }
 
 
@@ -466,57 +939,86 @@ function storePrivate( info )
 // classID is the id of the class defining this member
 //
 
-function accessHelper( info, member )
+function updateLayout( info, member )
 {
-	var ref   = 'function' === typeof member ? member : null
-	var name  = 'string'   === typeof member ? member : /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
+	var ref, name, scope
 
 
-	// if it has been put on the interface before because it was inherited public, but the access level has changed
-	// remove it from the interface
-	//
-	if
-	(
-		   'undefined' !== typeof info.layout[ name ]
-		&& 'undefined' !== typeof info.instRec.iFace[ name ]
-
-		&& ! ( info.accessLvl & FLAGS.PUBLIC )
-		&& info.layout[ name ].flags & FLAGS.PUBLIC
-	)
+	if( 'function' === typeof member )
 	{
-		delete info.instRec.iFace[ name ]
+		name = /\W*function\W+([\w\$]+)\(/.exec( member.toString() )[ 1 ]
+		ref  = member
+	}
+
+	else if( 'string' === typeof member )
+	{
+		// Do scope resolution
+		//
+		var split = member.split( '.' )
+
+		name  = split.pop()
+		scope = split.pop()
+
+		if( split.length ) throw new Error( "More than one dot found in: " + member )
+
+
+		// format 'Super.someMember' only exists to change the accessLvl of an inherited property
+		//
+		if( scope )
+		{
+			if( !classIDs[ scope ] )
+
+				throw new TypeError( scope + " is not an OoJs base. Setting access level is curently only supported on OoJs bases." )
+
+			if( info.classMeta.accessibleBases.indexOf( scope ) < 0  &&  !info.layout.get( name, scope ) )
+
+				throw new TypeError( scope + " is not an accessible base of " + info.classMeta.name  )
+
+			if( info.accessLvl === FLAGS.VIRTUAL )
+
+				throw new Error( "Can't make base methods virtual (" + member + ") in " + info.classMeta.name )
+		}
 	}
 
 
-
-	// if we have a reference to it but it doesn't exist, it's a method of the current class, register it
-	// if it does exist, but it's not from this class, it's inherited, overwrite it
-	//
-	if
-	(
-		   'undefined' !== typeof info.layout[ name ]  &&  ref  &&  info.layout[ name ].ownerClass !== info.classID
-
-		|| 'undefined' === typeof info.layout[ name ]  &&  ref
-	)
-	{
-		registerMember( info.layout, name, ref, info.accessLvl, info.classID, false /*don't throw if it already exists*/ )
-	}
-
-
-	// if it is inherited or a data member or been set by virtual, set the flags to the right access level
-	//
-	else if(	'undefined' !== typeof info.layout[ name ] )
-	{
-		info.layout[ name ].flags = info.accessLvl | ( info.layout[ name ].flags & FLAGS.VIRTUAL )
-
-
-	}
-
-	// we don't know what it is
-	//
 	else
 
-		throw new Error( "Couldn't find definition of member: " + name + " in class: " + info.classMeta.name )
+		throw new TypeError( "Parameters to this.Public/Private/Protected have to be either strings or references to functions. Got: " + member + " in class " + info.classMeta.name )
+
+
+
+
+
+	var  flags
+	   , owner    = scope || info.classMeta.name
+	   , existing = info.layout.get( name, owner )
+
+	if( existing )
+	{
+		if( info.accessLvl & FLAGS.VIRTUAL )
+
+			flags = existing.flags | FLAGS.VIRTUAL
+
+		else
+
+			flags = info.accessLvl | ( existing.flags & FLAGS.VIRTUAL )
+	}
+
+	else if( !ref && !scope )
+
+		throw new Error( "Couldn't find property: " + name + " in class: " + info.classMeta.name )
+
+	else
+
+		flags = info.accessLvl
+
+
+	if( !scope || !info.layout.get( name ) || info.layout.get( name ).ownerID === classIDs[ owner ] )
+
+		flags |= FLAGS.ACTIVE
+
+
+	info.layout.set({ name: name, reference: ref, flags: flags, ownerID: classIDs[ owner ], setterID: info.classID })
 
 
 
@@ -526,7 +1028,7 @@ function accessHelper( info, member )
 	{
 		info.virtuals[ name ] = info.virtuals[ name ] || []
 
-		info.virtuals[ name ].push( info.layout[ name ] )
+		info.virtuals[ name ].push( info.layout.get( name, info.classID ) )
 	}
 }
 
@@ -536,63 +1038,39 @@ function accessHelper( info, member )
 //
 function inherit( info )
 {
-	if( info.classMeta.inherited[ info.layoutType ] )
+	if( info.classMeta.flags & info.layoutFlag )
 
 		return
 
 
-	info.classMeta.inherited[ info.layoutType ] = true
+	info.classMeta.flags |= info.layoutFlag
 
 
 	for( var i = info.supers.length - 1; i >= 0; --i )
 	{
-		var layoutObj = classes[ instances[ info.supers[ i ] ].classID ][ info.layoutType ]
-		var virtuals  = classes[ instances[ info.supers[ i ] ].classID ].virtuals
+		var   parentMeta   = classes[ instances[ info.supers[ i ] ].classID ]
+		    , parentLayout = parentMeta[ info.layoutType ]
+		    , virtuals     = parentMeta.virtuals
 
 
-		// loop through all the parent properties
+		// copy over the parent layout except for the private stuff
 		//
-		for( var key in layoutObj )
-		{
-			// if it is private, don't inherit
-			//
-			if
-			(
-				   ! layoutObj.hasOwnProperty( key )
-				|| layoutObj[ key ].flags & FLAGS.PRIVATE
-			)
-
-				continue
-
-
-			// if we don't have this one yet, inherit it
-			//
-			else if( 'undefined' === typeof info.layout[ key ] )
-			{
-				info.layout[ key ] = layoutObj[ key ]
-				info.layout[ key ].flags = layoutObj[ key ].flags  &  ~FLAGS.VIRTUAL
-			}
-
-
-			// if we have it already, several baseclasses provide it since we don't yet deal with multiple inheritance, throw
-			//
-			else if( info.layout[ key ].ownerClass !== info.classID )
-
-				throw new Error( "two baseclasses both provide member: " + key )
-		}
+		parentLayout.each( inheritLayout, info, parentMeta )
 
 
 		// copy the entries in the virtual table unless the parent has overridden it with a non-virtual method
 		//
 		for( var method in virtuals )
 		{
+			var parentRecord = parentLayout.get( method )
+
 			if
 			(
 				   virtuals.hasOwnProperty( method )
 
 				&& (
-						   'undefined' === typeof layoutObj[ method ]
-						|| layoutObj[ method ].flags & FLAGS.VIRTUAL
+						   parentRecord       === undefined
+						|| parentRecord.flags  &  FLAGS.VIRTUAL
 					)
 			)
 			{
@@ -602,11 +1080,52 @@ function inherit( info )
 
 				for( var parent in virtuals[ method ] )
 
-					info.virtuals[ method ][ info.virtuals[ method ].length ] = virtuals[ method ][ parent ]
+					info.virtuals[ method ].push( virtuals[ method ][ parent ] )
 			}
 		}
-
 	}
+}
+
+
+
+function inheritLayout( info, parentMeta )
+{
+	if( this.flags & FLAGS.PRIVATE  ||  !( this.flags & FLAGS.ACTIVE ) )
+
+		return
+
+
+	var  newAccessLvl
+		, inheritLvl
+		, flags      = this.flags & ~FLAGS.VIRTUAL
+
+
+	for( var i = info.classMeta.bases.length - 1; i >= 0; --i )
+
+		if( info.classMeta.bases[ i ].inherit === parentMeta.name )
+
+			inheritLvl = info.classMeta.bases[ i ].as
+
+
+	// deal with classes inherited as private or protected
+	//
+	if( inheritLvl === "private"  ||  inheritLvl === "protected" )
+	{
+		newAccessLvl = inheritLvl === "private" ? FLAGS.PRIVATE : FLAGS.PROTECTED
+
+		flags &= ~FLAGS.PUBLIC & ~FLAGS.PROTECTED
+		flags |= newAccessLvl
+	}
+
+
+	info.layout.set
+	({
+		  name      : this.name
+		, ownerID   : this.ownerID
+		, setterID  : this.setterID
+		, reference : this.reference
+		, flags     : flags
+	})
 }
 
 
@@ -615,9 +1134,9 @@ function inherit( info )
 // this way inherited methods from that baseclass that call this method on their 'this' will
 // call the overridden one by this class
 //
-function fixVirtual( info, name, ownerClass )
+function fixVirtual( info, name, ownerID )
 {
-	var parent = findParent( this.ooID, ownerClass )
+	var parent = findParent( this.ooID, ownerID )
 
 	delete instances[ parent ]._this[ name ]
 
@@ -632,7 +1151,9 @@ function fixVirtual( info, name, ownerClass )
 				  enumerable  : true
 				, configurable: true
 
-				, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( info.layout[ name ].reference, this )
+				, get: ( function( ref, _this ){ return function virtualMethod(){ return ref.bind( _this ) } } )
+
+							( info.layout.get( name, info.classID ).reference, this )
 			}
 	)
 }
@@ -641,130 +1162,180 @@ function fixVirtual( info, name, ownerClass )
 
 
 // function createAccessors
-// @param protectedOnIFace allows creating an iface with protected members allowing calling base class methods
 //
-function createAccessors( info, protectedOnIFace )
+function createAccessors( that, info )
 {
-	var defineProperty = Object.defineProperty
+	// only do this once for every access level
+	//
+	if( !( this.flags & info.accessLvl ) || this.setterID !== info.classID )
 
-	for( var key in info.layout )
+		return
+
+
+	// if it is an inherited property, just check if the access level hasn't been changed in this class
+	//
+	if( this.ownerID !== info.classID )
 	{
+		// Correct the access level in object.base.member
+		// add stuff that has been made public and remove stuff that has been made private or protected
+		//
+		var   active = info.layout.get( this.name )
+		    , own    = info.layout.get( this.name, info.classID )
+		    , owner  = classes[ this.ownerID ].name
 
-		if( ! info.layout.hasOwnProperty( key ) )
-
-			continue
-
-
-		var member     = info.layout[ key ]
-		var mReference = member.reference
-
-		var toBePatched
-
-
-		if( true === protectedOnIFace )
-
-			toBePatched = member.flags & FLAGS.PROTECTED  ?  [       info.iFace ]  :  []
-
-
-		else
-
-			toBePatched = member.flags & FLAGS.PUBLIC     ?  [ this, info.iFace ]  :  [ this ]
-
-
-		for( var i = toBePatched.length - 1; i >= 0; --i )
+		if( !( this.flags & FLAGS.PUBLIC ) )
 		{
-			var ownerID    = findParent( this.ooID, member.ownerClass )
+			delete info.instRec.iFace[ owner ][ this.name ]
 
-			// if it is a data member
+			// if the version that we are turning private or protected is the one on our interface,
+			// we need to remove it
 			//
-			if( !mReference )
-			{
-				defineProperty
+			if( active && active.ownerID === this.ownerID )
+
+				delete info.instRec.iFace[ this.name ]
+
+		}
+
+		else // make public
+		{
+			info.instRec.iFace[ owner ] = info.instRec.iFace[ owner ] || {}
+
+			var patch = own ? [ info.instRec.iFace[ owner ] ] : [ info.instRec.iFace, info.instRec.iFace[ owner ] ]
+
+			for( var i = patch.length - 1; i >= 0; --i )
+
+				Object.defineProperty
 				(
-					  toBePatched[ i ]
-					, key
-
-					,  {
-							  enumerable  : true
-							, configurable: true
-
-							, get: ( function( key, ownerID ){ return function()        { return instances[ ownerID ].state[ key ]  } } )( key, ownerID )
-
-
-							, set: ( function( key, ownerID ){ return function( value ) { instances[ ownerID ].state[ key ] = value } } )( key, ownerID )
-						}
+					  patch[ i ]
+					, this.name
+					, Object.getOwnPropertyDescriptor( info.instRec._this[ owner ], this.name )
 				)
-			}
+		}
 
 
-			else // it is a method
-			{
-				// find it's reference, and if it's inherited, set it to point to parent this
-				//
-				var that   = instances[ ownerID ]._this
+		return
+	}
 
 
-				// don't set a setter, so methods can't be overridden
-				//
-				defineProperty
-				(
-					  toBePatched[i]
-					, key
+	// if it is from this class, it might override a member that we inherited.
+	// in that case it is possible that the public interface holds a version that should be
+	// removed if this is not public (and thus we won't override it on the iFace)
+	//
+	else if( !( this.flags & FLAGS.PUBLIC ) )
 
-					,  {
-							  enumerable  : true
-							, configurable: true
+		delete info.instRec.iFace[ this.name ]
 
-							, get: ( function( ref, _this ){ return function(){ return ref.bind( _this ) } } )( mReference, that )
-						}
-				)
-			}
+
+
+
+	// now we are only dealing with non-inherited properties
+	//
+	var   toBePatched = this.flags & FLAGS.PUBLIC  ?  [ that, info.iFace ]  :  [ that ]
+	    , ownerID     = that.ooID
+
+	for( i = toBePatched.length - 1; i >= 0; --i )
+	{
+		// if it is a data member
+		//
+		if( !this.reference )
+		{
+			Object.defineProperty
+			(
+				  toBePatched[ i ]
+				, this.name
+
+				,  {
+						  enumerable  : true
+						, configurable: true
+
+						, get: ( function( key, ownerID ){ return function getter()        { return instances[ ownerID ].state[ key ]  } } )( this.name, ownerID )
+
+
+						, set: ( function( key, ownerID ){ return function setter( value ) { instances[ ownerID ].state[ key ] = value } } )( this.name, ownerID )
+					}
+			)
+		}
+
+
+		else // it is a method
+		{
+			// create the bound function if it does not exist:
+			//
+
+			var   parentID = findParent( ownerID, this.ownerID )
+			    , methods  = instances[ parentID ].methods
+
+			methods[ this.name ] = methods[ this.name ] || this.reference.bind( that )
+
+
+			// don't set a setter, so methods can't be overridden
+			//
+			Object.defineProperty
+			(
+				  toBePatched[i]
+				, this.name
+
+				,  {
+						  enumerable  : true
+						, configurable: true
+
+						, get: (function( methoda ){ return function method(){ return methoda } })( methods[ this.name ] )
+					}
+			)
 		}
 	}
+
 }
 
 
 
-function findParent( id, classID )
+// Find the parent of the object defined by id which belongs to class classID
+//
+// The alternate form of this function when friendsAlso is true, will also return the given parent if
+// the classID refers to a class that is friends with the parent class
+//
+function findParent( id, classID, friendsAlso, noSelf )
 {
 	// if the object is of the right class return it
 	//
-	if( instances[ id ].classID === classID )
+	if
+	(
+		   !noSelf
+
+		&& (
+			     instances[ id ].classID === classID
+
+		     ||    friendsAlso
+		        && classes[ instances[ id ].classID ].friends.indexOf( classes[ classID ].name ) !== -1
+		   )
+	)
 
 		return id
 
 
-	var parent = null
-	var ssuper
+	var   parent = null
+	    , ssuper
 
 	for( var i = instances[ id ].supers.length - 1; ( ssuper = instances[ id ].supers[ i ] ) ; --i )
 	{
-		if( ssuper.classID === classID )
+		if
+		(
+			   ssuper.classID === classID
+
+			||     friendsAlso
+			   &&  classes[ instances[ ssuper ].classID ].friends.indexOf( classes[ classID ].name ) !== -1
+		)
 		{
 			parent = ssuper
 			break
 		}
 
-		else if( null !== ( parent = findParent( ssuper, classID ) ) )
+		else if( null !== ( parent = findParent( ssuper, classID, friendsAlso, noSelf ) ) )
 
 			break
 	}
 
 	return parent
-}
-
-
-
-function registerMember( layout, name, reference, flags, ownerClass, throw_ )
-{
-	if( 'undefined' === typeof layout[ name ] || !throw_ )
-
-		layout[ name ] = { flags: flags, reference: reference, ownerClass: ownerClass }
-
-	else
-
-		throw new Error( "Property '" + name + "' is already defined" )
-
 }
 
 
@@ -776,25 +1347,80 @@ function initialize()
 
 	Object.defineProperty( iFace, "ooID", { value: this.ooID } )
 
-	instances[ this.ooID ] = new IntancesRecord( this, this.constructor.ooID, iFace )
+	instances[ this.ooID ] = new InstanceRecord( this, this.constructor.ooID, iFace )
 }
 
 
+// should return an integer or string unique for all OoJs classes and objects
+// should never return something that evaluates to false
+//
+uid.counter = 0
+
 function uid()
 {
-	// we will keep an incremental counter, but set the starting value random to some integer
-	//
-	uid.counter = uid.counter || 0
-
 	return ++uid.counter
 }
 
 
-})( TidBits )
+function extend( destination, root, accessorOnly )
+{
+	for( var key in root )
+	{
+		var isGetter = !!Object.getOwnPropertyDescriptor( root, key ).get
+
+		if( !root.hasOwnProperty( key )  ||  accessorOnly === true && !isGetter )
+
+			continue
+
+
+		// we need to make sure configurable is true because we sometimes first copy all properties
+		// to then remove some that get overridden.
+
+		var original = Object.getOwnPropertyDescriptor( root, key )
+
+
+		if( isGetter )
+
+			Object.defineProperty
+			(
+				  destination
+				, key
+
+				, {
+					    configurable : true
+					  , enumerable   : original.enumerable
+					  , get          : original.get
+					  , set          : original.set
+				  }
+			)
+
+
+		else
+
+			Object.defineProperty
+			(
+				  destination
+				, key
+
+				, {
+					    configurable : true
+					  , enumerable   : original.enumerable
+					  , writable     : original.writable
+					  , value        : original.value
+				  }
+			)
+	}
+
+	return destination
+}
+
+
+
+})( TidBits );
 
 
 if( 'undefined' !== typeof module )
 
-	module.exports.OoJs = TidBits.OoJs
+	module.exports = TidBits
 
 ;

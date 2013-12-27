@@ -1,3 +1,10 @@
+var  TidBits  = TidBits || {} // our namespace
+
+if( 'undefined' !== typeof module )
+{
+	TidBits = require( '../OoJs/oojs.dev.js' )
+}
+
 // minimal template
 // you can copy this to start new classes
 //
@@ -8,7 +15,7 @@
 	if( namespace[ "Template" ] ) return    // protect against double inclusions
 
 	    namespace.Template = Template
-	var Static             = TidBits.OoJs.setupClass( namespace, "Template", "BaseClass" )
+	var Static             = TidBits.OoJs.setupClass( namespace, "Template" )
 
 	// Data members, private by default
 	//
@@ -78,8 +85,16 @@
 	//
 	function init(){}
 	function privateStaticMethod(){}
+	function protectedStaticMethod(){}
+	function publicStaticMethod(){}
+	function virtualPrivateInstanceMethod(){}
+	function protectedInstanceMethod(){}
+	function publicInstanceMethod(){}
 
-})( window )
+
+
+
+})( TidBits )
 
 
 
@@ -93,13 +108,13 @@ var TidBits = TidBits || {}     // This is how I create my namespace
 //
 if( 'undefined' !== typeof module )
 
-	TidBits.OoJs = require( './oojs.js' ).OoJs
+	TidBits = require( './oojs.js' )
 
 // we wrap a class in a function that is executed immediately to create a different scope
 // everything defined in here will not be visible in the global scope except the constructor
 // which we export onto the namespace
 //
-;( function class_Animal( namespace /*, $ ->if you want jQuery*/ )
+;( function class_Animal( namespace /*, $ -> if you want jQuery*/ )
 {
 	'use strict'; // recommended
 
@@ -253,7 +268,7 @@ if( 'undefined' !== typeof module )
 	'use strict';
 
 	    namespace.BlobFish = BlobFish
-	var Static             = TidBits.OoJs.setupClass( namespace, "BlobFish", "Animal" )
+	var Static             = TidBits.OoJs.setupClass( namespace, "BlobFish", { inherit: "Animal", as: "public" } )
 
 	// if we want to have inherited methods, we must call at least Private, Protected or Public...
 	//
@@ -285,7 +300,7 @@ if( 'undefined' !== typeof module )
 		// BlobFishes don't like it if anyone can tell if they are hungry
 		// make the inherited method protected
 		//
-		this.Protected( "isHungry" )
+		this.Protected( "Animal.isHungry" )
 
 		return this.Public()
 	}
@@ -308,10 +323,10 @@ shark.eatAnimal( new BlobFish )                     // output: booohoooo, BlobFi
 var stayAlive = new BlobFish
 stayAlive.eatAnimal( shark )                        // output: a shark died
 
-console.log( "Is shark hungry?"    , shark    .isHungry() )
+console.log( "Is shark hungry?"    , shark.isHungry() )
 // output: Is shark hungry? sorry mate, this animal is already dead
 
-console.log( "Is stayAlive hungry?", stayAlive.isHungry() )
+// console.log( "Is stayAlive hungry?", stayAlive.isHungry() )
 // output: TypeError: Object #<BlobFish> has no method 'isHungry'
 
 console.log( Animal.whatSpecies() )                 // output: BlobFish

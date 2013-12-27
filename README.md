@@ -2,9 +2,9 @@ TidBits Javascript OoJs
 =======================
 
 **Latest Stable      Version: None yet - please test me!**  
-**Latest Development Version: 13.08.14-alpha**
+**Latest Development Version: 13.12.27-beta**
 
-This tidbit proposes a way to use a classical OOP paradigm in Javascript. It is part of the [TidBits Javascript Library](https://github.com/najamelan/TidBits_Javascript).
+This tidbit proposes a way to use a classical OOP paradigm in Javascript. It is part of the [TidBits Javascript Library](https://github.com/najamelan/TidBits_Javascript). It is modeled after the C++ OOP featureset.
 
 
 This shows the basic syntax of what a class looks like in OoJs
@@ -27,7 +27,7 @@ This shows the basic syntax of what a class looks like in OoJs
 
 	Static.Private
 	(
-		  "privateStaticDM"     //< can do for consistency, but is the default
+		  "privateStaticDM"     //< can do for consistency, but private is the default
 		,  privateStaticMethod  //  accesslevel for data members
 	)
 
@@ -91,30 +91,33 @@ This shows the basic syntax of what a class looks like in OoJs
 
 ## Table of Contents
 
+
+
 -  [Design goals](#design-goals)
 -  [Why would you want to use OOP](#why-would-you-want-to-use-oop)
 
-   -  [Abstraction](#abstraction)
-   -  [Loose coupling, tight cohesion](#loose-coupling-tight-cohesion)
-   -  [Flexibility vs Scalability and Maintainability](#flexibility-vs-scalability-and-maintainability)
+      -  [Abstraction](#abstraction)
+      -  [Loose coupling, tight cohesion](#loose-coupling-tight-cohesion)
+      -  [Flexibility vs Scalability and Maintainability](#flexibility-vs-scalability-and-maintainability)
 
 -  [How it works](#how-it-works)
 
-   -  [Features](#features)
-   -  [Limitations](#limitations)
-   -  [Requirements](#requirements)
-   -  [Installation](#installation)
-   -  [Verify your installation](#verify-your-installation)
-   -  [Usage](#usage)
-  
-      -  [Reserved keywords](#reserved-keywords)
-      -  [API](#api)
-      -  [Make sure your object is set up](#make-sure-your-object-is-set-up)
-      -  [Do not use logic before your object is set up](#do-not-use-logic-before-your-object-is-set-up)
-      -  [Declare data members and call Super before Public/Private/Protected](#declare-data-members-and-call-super-before-publicprivateprotected)
-      -  [Do not call virtual methods from your constructor](#do-not-call-virtual-methods-from-your-constructor)
-      -  [Sealing your object is nice, but dangerous](#sealing-your-object-is-nice-but-dangerous)
-      -  [Do not try to deep copy objects or extend them](#do-not-try-to-deep-copy-objects-or-extend-them)
+      -  [Features](#features)
+      -  [Limitations](#limitations)
+      -  [Reporting issues](#reporting-issues)
+      -  [Requirements](#requirements)
+      -  [Installation](#installation)
+      -  [Verify your installation](#verify-your-installation)
+      -  [Usage](#usage)
+        
+         -  [Reserved keywords](#reserved-keywords)
+         -  [API](#api)
+         -  [Make sure your object is set up](#make-sure-your-object-is-set-up)
+         -  [Do not use logic before your object is set up](#do-not-use-logic-before-your-object-is-set-up)
+         -  [Declare data members and call Super before Public/Private/Protected](#declare-data-members-and-call-super-before-publicprivateprotected)
+         -  [Do not call virtual methods from your constructor](#do-not-call-virtual-methods-from-your-constructor)
+         -  [Sealing your object is nice, but dangerous](#sealing-your-object-is-nice-but-dangerous)
+         -  [Do not try to deep copy objects or extend them](#do-not-try-to-deep-copy-objects-or-extend-them)
   
   -  [Seeing it in action](#seeing-it-in-action)
  
@@ -122,18 +125,15 @@ This shows the basic syntax of what a class looks like in OoJs
 ## Design goals
 
 The goals of OoJs were set as follows (until ES provides decent class support):
-1.  provide the featureset of C++ OOP in JavaScript
-2.  provide a neat and clean syntax to the end user
-3.  require a minimal amount of sugar code
-4.  only use standard ES5
 
-It must be said that the current alpha release only partially meets these goals. N°s 2 and 4 are met as far as I'm concerned.
+1.  provide the featureset of C++ OOP in JavaScript (see [limitations](#limitations) )
+2.  provide a neat and clean syntax to the end user (I consider this succeeded)
+3.  require a minimal amount of sugar code (about 12kB minimized)
+4.  only use standard ES5 (yes)
 
-Most of the featureset is implemented and more can be done in the future. There is no fundamental obstacle preventing us from total coverage, but some harder design decisions will have to be made. Also there is incomplete support for one feature. Calling baseclass versions of overridden methods currently is only possible for the direct parent, not for the other ancestors. Please see [limitations](#limitations) for a detailed description of the featureset.
+As far as the amount of sugar code is concerned, only about 1 line of sugar code is needed in a class declaration, but the production version of what makes the magic work now compiles to about 12000 characters, which is more than what I had hoped for (mind you, it's a lot less than this readme). The problem domain of inheritance is quite complex, well, there is only a limited amount of features that you can cramm into a line of code...
 
-As far as the amount of sugar code is concerned, only about 1 line of sugar code is needed in a class declaration (<-good), but the production version of what makes the magic work now compiles to about 6800 characters (mind you, it's a lot less than this readme), which is about double than what I had hoped for. I would hope that some major design improvement might cut that down, but as the problem domain of inheritance is quite complex, well, there is only a limited amount of features that you can cramm into one line of code...
-
-**If you want to skip the lesson about OOP software design, skip down to "How it works".** -> Not recommended if you have only ever done programming in JavaScript.
+**If you want to skip the lesson about OOP software design, skip down to [How it works](#how-it-works).** -> Not recommended if you have only ever done programming in JavaScript.
 
 
 ## Why would you want to use OOP
@@ -147,7 +147,7 @@ OOP is about abstraction. It is about creating a high level view on your softwar
 
 Theoretically Javascript allows you to adhere to such principles, but you are not encouraged even less bound to. The essence of a clear structure is to separate interface from implementation and thus have class declarations. Javascript in the wild rarely has class declarations, even the best and most popular libraries.
 
-Javascript allows you to change object structure anywhere along the line, and even if that might seem powerful at first, the downside is that people actually do it which means poor structure. It becomes very hard to see what an object really is, because it is extended all over the place and because there is about ten ways to do anything, including inheritance.
+Javascript allows you to change object structure anywhere along the line, and even if that might seem powerful at first, the downside is that it leads to poor structure. It becomes very hard to see what an object really is, because it is extended all over the place and because there is about ten ways to do anything, including inheritance.
 
 If there would be no traffic rules, we would be more free. We would also be able to do most if not all of the things we can do now, or more (at least at the personal level), but a system with rules might be more efficient in the end to get everyone from a to b with as few accidents as possible. That's because things are predictable and understood by everyone. Freedom of action can bring power but also chaos (I'm talking about systems here, not social relations and politics).
 
@@ -171,6 +171,8 @@ When looking at a small snippet, the javascript model is attractive, but when yo
 As the the internet evolves it takes more and more place in informatics and these days we want to develop big and complex software in javascript. There is [a draft on the way for Ecmascript 6](http://wiki.ecmascript.org/doku.php?id=strawman%3amaximally_minimal_classes) to finally support the class keywords, but it might take some time before browsers implement it.
 
 Until that time, JavaScript is not ready for application and library design, and as a downside, all the flexibility of JavaScript invites programmers to fix their poor design by quickly adding a property to some object (maybe not even theirs), the global scope, throw in an inline anonymous function or do some cool closure magic, with as a net result: **most of the Javascript code out there is hard to read, hard to debug, hard to maintain, hard to scale, dangerous to rely on and hard to use as a fundamental building block**.
+
+(and mind you, I have found bugs in almost every single one of them I used, with jQuery being a notable exception)
 ## How it works
 
 This section explains the design choices of and functioning of OoJs. In brief this is are the characteristics:
@@ -180,6 +182,8 @@ This section explains the design choices of and functioning of OoJs. In brief th
 -  declaration up front, definitions below
 -  public, private, protected methods and data members
 -  non-pure virtual methods
+-  friend classes
+-  you can override the access level of inherited members
 -  correct prototype chain (instanceof works)
 -  supports namespaces. You can make classes without poluting the global scope at all (well except for your namespace of course)
 -  all methods and members of your class can internally be called in the form of `this.myMethod` or `this.myData`
@@ -188,19 +192,20 @@ This section explains the design choices of and functioning of OoJs. In brief th
 
 
 ### Limitations
--  you will have to include a class with sugar code (about 7KB) in order to make the magic work
+-  you will have to include a class with sugar code (about 12KB) in order to make the magic work
 -  I haven't done performance testing to compare to other models, but it sure isn't the kind of framework to generate thousands of objects, rather use it to create good application design
 -  it's not cryptic, but you'll best still include a link to this readme for people reading your code to understand how it works
--  you can't call a static method on an instance (I don't really know if I find it a good idea to implement that, but I might do for consistence with C++)
--  no friend classes
+-  no friend functions
+-  you can't call a static method on an instance (I don't really know if I find it a good idea to implement that, but I might do for consistency with C++)
 -  no multiple inheritance (for the moment)
--  no possibility to set a standard access level when inheriting from a class (where C++ allows you to do "class A : protected B"), however you can override the access level on an indivitual basis for your class members.
--  one feature is currently incomplete. It's related to the property .BaseName which will be available on your private object of a Derived class and which will allow you to call Base versions of methods. The current implementation only provides .BaseName for your direct parent, and not for ancestors higher up the chain.
 -  there is currently no clone utility function provided with OoJs. The problem being I haven't found a simple way to determine which properties should be deep copied and which not. What if someone writes (and they can, so they will): this.myWindow = window. Deep copying a data member like that would be a royal disaster... You will have to provide a copy constructor dealing with the right properties if you want this
 -  I haven't tested whether it works well to inherit from non-OoJs bases. Say you could subclass "Function" to generate functions, but I haven't tested fancy stuff like that. (Your objects inherit the prototype of your base, so with most stuff it should be fine)
--  classes that inherit from one another have to live in the same namespace
+-  classes that inherit from one another have to live in the same namespace (for now)
+-  there is no final keyword (if you seal your private object you will effictively make the class final, but the error message will be non descriptive)
 
-If you are using OoJs and there's stuff you can't do due to the limitations, please file an issue here at github and/or start a bounty at [bountysource](https://bountysource.com) and I'll do my best to make time for it.
+
+### Reporting issues
+If you are using OoJs and there's stuff you can't do due to the limitations, please file an issue here at github and/or start a bounty at [bountysource](https://bountysource.com) and I'll do my best to make time for it. When reporting issues please provide a simple selfcontained example that illustrates the issue.
 
 
 ### Requirements
@@ -229,15 +234,6 @@ git submodule add https://github.com/najamelan/TidBits_Javascript_UnitTesting.gi
 If you are using Nodejs, run the unit tests:
 
 ```bash
-cd includes/OoJs
-node tests/testOoJs.js
-```
-
-#### Verify your installation
-
-If you are using Nodejs, run the unit tests:
-
-```bash
 cd includes/UnitTesting
 node tests/testOoJs.js
 ```
@@ -252,10 +248,11 @@ Have a look at [the sample code below](#seeing-it-in-action). Once you get the h
 #### Reserved keywords
 
 OoJs adds certain properties to your object. They will be non-enumerable, but you shouldn't overwrite/delete them regardless.
+
 -  `ooID` (you can use this if you want, read only, to uniquely identify your objects) It is unique for all OoJs objects, not only those in the same class.
 -  `Super`, `Virtual`, `Private`, `Protected`, `Public`
--  OoJs creates a property with the name of your baseclass on your private object, so you can call baseclass versions of methods, so don't create a property with the name of a class you inherit from.
--  `Static.getPrivateInstance` is a property provided by OoJs. It is safe to create a property with that name on an instance, but not on static level.
+-  OoJs creates a property with the name of your baseclasses on your private object, so you can call baseclass versions of methods, so don't create a property with the name of a class you inherit from.
+-  `Static.getPrivateInstance` is a property provided by OoJs. It is safe (but not recommended) to create a property with that name on an instance, but not on static level.
 
 #### API
 
@@ -263,22 +260,24 @@ OoJs provides the following functions:
 
 -  **OoJs.setupClass**: need to call this for every class  
   **returns** `Static`  
-  **parameters**: `namespace, classname [, baseclassname]`
+  **parameters**: `namespace, classname [, baseclass name or object]`
 
 -  **OoJs.typeOf**: find out the type of an OoJs object (eg. will not return 'object', will return your classname)  
   **returns** `string` classname  
   **parameters**: an object created by a class setup with OoJs
   
 
--  On your Static, there is a method **getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class, use this. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
+-  **Static.getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
+
+-  **Static.Friends( one or more string classnames )** of classes which are allowed to call `getPrivateInstance` for interfaces of your class.
   
--  On your private object, if class Circle inherits from Shape, in Circle, **this.Shape** will be an interface to the Shape parent of your circle, which you can use to call Shape versions of public and protected methods. Currently only available for the direct parent. I should implement that for all ancestors...
+-  On your private object, if class Circle inherits from Shape, in Circle, **this.Shape** will be an interface to the Shape parent of your circle, which you can use to call Shape versions of public and protected methods. On your public interface there will be a Shape property allowing access to only the public properties.
 
 -  On both your interface and private object, a property **ooID** will exist. This is a unique identifier for this object. The interface will have the same ooID as the private object, should you ever need to verify their connection.
 
 -  **this.Super( parameters )** allows you to send parameters to your parent class constructor. You should call this before calling Public/Private/Protected.
 
--  On both static and instance you will have **.Public**, **.Private**, **.Protected** which take your members as parameters. Methods should be passed as references (their name without quotes), whereas data members should be their name as strings. You can override the access level of parent members, in which case you should pass them as strings. These methods also accept the return value of **this.Virtual** as a parameter. For instances, .Public will return an interface which you should return from your constructor.
+-  On both static and instance you will have **.Public**, **.Private**, **.Protected** which take your members as parameters. Methods should be passed as references (their name without quotes), whereas data members should be their name as strings. You can override the access level of parent members, in which case you should pass them as strings in the form of: "Base.membername". These methods also accept the return value of **this.Virtual** as a parameter. For instances, this.Public will return an interface which you should return from your constructor.
 
 -  On your instance you can call **this.Virtual**. This method takes method references as parameters. You can call this in the parameter list of the above methods so you don't have to write your method names twice.
 
@@ -320,18 +319,16 @@ When you declare data members, Public/Private/Protected will store them and repl
 A child class instance calls Super() before finishing setting up, and thus a virtual method in the baseclass won't yet point to overridden versions in the child class.
 
 
-#### Sealing your object is nice, but dangerous
+#### Sealing (Object.seal())
 
-I would like to encourage people to call Object.seal() on their objects when the declaration is over. However this makes your class final when you seal the public interface (eg. it won't be possible to subclass it) and breaks virtual methods if you seal your private object. That's because when a subclass instance is created, the public interface of the parent is being extended to have the protected properties as well as the public ones (so you can call parent versions as this.ParentClass.protectedMethod()). This happens when the subclass declaration is complete, and thus the parent interface is already created. If it's sealed, that's no longer possible. With virtual methods, the pointer on this get changed by subclasses to point to their overridden versions. That is no longer possible if the private object is sealed.
+It is recommended you seal your public interface before returning it from your constructor. If you do so, the only way to add or remove properties from your object is by changing it's declaration or by subclassing. 
 
-In conclusion, if your class has no virtual methods, you can safely seal your private object. This will protect you against spelling mistakes in setter for example.
-
-If you seal your interface and you have protected members, your class becomes final. You can work around this by passing a parameter in your constructor to distinguish between when it is safe to seal and when not. Since sealing is logic, not declaration you should do it after calling Private/Protected/Public and so it can happen conditionally. If for example in your subclasses you call this.Super( "noseal" ), you can seal it when a user instanciates directly, and thus doesn't pass this parameter.
+Sealing your private object currently breaks inheritance (makes your class final), and in any case is not compatible with virtual methods, because they need to be changed when subclasses override them. Use with care.
 
 
 #### Do not try to deep copy objects or extend them
 
-It won't work as expected. You will have methods that work on the private part of the object you copy and so it won't work as expected. I am planning to provide a clone function, but it is not easy. If a user sets a data member to point to some outside object (eg. window), it would be quite bad to deep copy that. For now, it is best you write your own copy constructor which will make sure that all data members that need to be deep copied will be so.
+It won't work as expected. You will have methods that work on the private part of the object you copy and so it won't work as expected. If a user sets a data member to point to some outside object (eg. window), it would be quite bad to deep copy that. It is best you write your own copy constructor which will make sure that all data members that need to be deep copied will be so.
 
 
 
@@ -350,13 +347,13 @@ var TidBits = TidBits || {}     // This is how I create my namespace
 //
 if( 'undefined' !== typeof module )
 
-	TidBits.OoJs = require( './oojs.js' ).OoJs
+	TidBits = require( './oojs.js' )
 
 // we wrap a class in a function that is executed immediately to create a different scope
 // everything defined in here will not be visible in the global scope except the constructor
 // which we export onto the namespace
 //
-;( function class_Animal( namespace /*, $ ->if you want jQuery*/ )
+;( function class_Animal( namespace /*, $ -> if you want jQuery*/ )
 {
 	'use strict'; // recommended
 
@@ -510,7 +507,7 @@ if( 'undefined' !== typeof module )
 	'use strict';
 
 	    namespace.BlobFish = BlobFish
-	var Static             = TidBits.OoJs.setupClass( namespace, "BlobFish", "Animal" )
+	var Static             = TidBits.OoJs.setupClass( namespace, "BlobFish", { inherit: "Animal", as: "public" } )
 
 	// if we want to have inherited methods, we must call at least Private, Protected or Public...
 	//
@@ -542,7 +539,7 @@ if( 'undefined' !== typeof module )
 		// BlobFishes don't like it if anyone can tell if they are hungry
 		// make the inherited method protected
 		//
-		this.Protected( "isHungry" )
+		this.Protected( "Animal.isHungry" )
 
 		return this.Public()
 	}
@@ -565,10 +562,10 @@ shark.eatAnimal( new BlobFish )                     // output: booohoooo, BlobFi
 var stayAlive = new BlobFish
 stayAlive.eatAnimal( shark )                        // output: a shark died
 
-console.log( "Is shark hungry?"    , shark    .isHungry() )
+console.log( "Is shark hungry?"    , shark.isHungry() )
 // output: Is shark hungry? sorry mate, this animal is already dead
 
-console.log( "Is stayAlive hungry?", stayAlive.isHungry() )
+// console.log( "Is stayAlive hungry?", stayAlive.isHungry() )
 // output: TypeError: Object #<BlobFish> has no method 'isHungry'
 
 console.log( Animal.whatSpecies() )                 // output: BlobFish
