@@ -1,17 +1,24 @@
-v.xx
-----
+13.12.27-beta
+-------------
+
+TODO: test adding multiple friend classes, possibly validation on friend classes, a few features still need tests to be written for them
 
 change 1, 2 BREAK COMPATIBILITY WITH PRIOR VERSIONS
 
 1. Changing the access level of inherited members now needs to be done as: this/Static.Private( "Base.method", "Base.datamember" )
    This assures compatibility with C++ because it allows you to have members in subclasses with the same name as members in base classes.
 
-2. Access level on class level for inheritance. Now defaults to private as in C++
+2. Access level on class level for inheritance. Now defaults to private as in C++. To inherit public/protected pass { inherit: "Baseclass", as: "public" } to setupClass instead of just your baseclass name.
 
 3. Static.Friends() now allows friend classes
 
 4. Rewrite of the unit tests, now runs about 1600 tests
 
+5. You can now safely seal your public interface before returning it from your constructor
+
+6. Access to all inherited classes is now available on both private and public objects as myObject.BaseClass.member
+
+7. Cache bound methods instead of calling bind on every access
 
 
 13.08.20-alpha
