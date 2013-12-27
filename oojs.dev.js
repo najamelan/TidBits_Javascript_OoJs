@@ -891,6 +891,10 @@ function accessModifier( newMembers, accessLvl )
 	if( accessLvl === FLAGS.PUBLIC  &&  layoutType === 'instanceLayout' )
 
 		return info.iFace
+
+		// If you want to check if the tests still run when the interface is sealed, use this
+		//
+		// return Object.seal( info.iFace )
 }
 
 
@@ -1216,7 +1220,7 @@ function createAccessors( that, info )
 
 	// if it is from this class, it might override a member that we inherited.
 	// in that case it is possible that the public interface holds a version that should be
-	// removed if this is not public (and thus we won't override it)
+	// removed if this is not public (and thus we won't override it on the iFace)
 	//
 	else if( !( this.flags & FLAGS.PUBLIC ) )
 
@@ -1363,11 +1367,49 @@ function extend( destination, root, accessorOnly )
 {
 	for( var key in root )
 	{
-		if( !root.hasOwnProperty( key )  ||  accessorOnly === true && !Object.getOwnPropertyDescriptor( root, key ).get )
+		var isGetter = !!Object.getOwnPropertyDescriptor( root, key ).get
+
+		if( !root.hasOwnProperty( key )  ||  accessorOnly === true && !isGetter )
 
 			continue
 
-		Object.defineProperty( destination, key, Object.getOwnPropertyDescriptor( root, key ) )
+
+		// we need to make sure configurable is true because we sometimes first copy all properties
+		// to then remove some that get overridden.
+
+		var original = Object.getOwnPropertyDescriptor( root, key )
+
+
+		if( isGetter )
+
+			Object.defineProperty
+			(
+				  destination
+				, key
+
+				, {
+					    configurable : true
+					  , enumerable   : original.enumerable
+					  , get          : original.get
+					  , set          : original.set
+				  }
+			)
+
+
+		else
+
+			Object.defineProperty
+			(
+				  destination
+				, key
+
+				, {
+					    configurable : true
+					  , enumerable   : original.enumerable
+					  , writable     : original.writable
+					  , value        : original.value
+				  }
+			)
 	}
 
 	return destination
