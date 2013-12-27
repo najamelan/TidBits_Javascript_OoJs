@@ -478,7 +478,7 @@ function ApublicInstanceMethod   (){ return "ApublicInstanceMethod"    }
 if( namespace[ "InheritProtectedB" ] ) return
 
     namespace.InheritProtectedB = InheritProtectedB
-var Static = TidBits.OoJs.setupClass( namespace, "InheritProtectedB", { inherit: "InheritProtectedA", as: "protected"} )
+var Static = TidBits.OoJs.setupClass( namespace, "InheritProtectedB", { inherit: "InheritProtectedA", as: "protected" } )
 
 Static.BprivateStaticDM   = "BprivateStaticDM"
 Static.BprotectedStaticDM = "BprotectedStaticDM"
