@@ -689,7 +689,7 @@ function inheritProperties( info )
 	}
 
 
-	// copy the properties from the object itself
+	// copy the properties from the parent object itself
 	// copy the public or protected properties on inaccessible base classes
 	// remove stuff from accessible bases that has been turned private
 	//
@@ -701,7 +701,7 @@ function inheritProperties( info )
 	// now our object looks like what's left of the parent after we removed the private parts
 	// copy it under this[ baseName ]
 	//
-	this[ baseName ]      = extend( {}, this, true /*accessors only*/ )
+	this[ baseName ] = extend( {}, this, true /*accessors only*/ )
 
 	// get the parent interface
 	//
@@ -1162,7 +1162,6 @@ function fixVirtual( info, name, ownerID )
 
 
 // function createAccessors
-// @param protectedOnIFace allows creating an iface with protected members allowing calling base class methods
 //
 function createAccessors( that, info )
 {
