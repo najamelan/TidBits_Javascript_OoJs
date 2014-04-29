@@ -81,7 +81,7 @@ This shows the basic syntax of what a class looks like in OoJs
 		return iFace
 	}
 
-	// all your method declarations go here
+	// all your method definitions go here
 	//
 	function init(){}
 	function privateStaticMethod(){}
