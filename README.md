@@ -1,5 +1,5 @@
-TidBits Javascript OoJs
-=======================
+# TidBits Javascript OoJs [![Build Status](https://travis-ci.org/najamelan/TidBits_Javascript.png)](https://travis-ci.org/najamelan/TidBits_Javascript)
+
 
 **Latest Stable      Version: None yet - please test me!**  
 **Latest Development Version: 13.12.27-beta**
