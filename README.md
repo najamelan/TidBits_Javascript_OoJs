@@ -2,7 +2,7 @@
 
 
 **Latest Stable      Version: None yet - please test me!**  
-**Latest Development Version: 13.12.27-beta**
+**Latest Development Version: 14.04.29-beta**
 
 This tidbit proposes a way to use a classical OOP paradigm in Javascript. It is part of the [TidBits Javascript Library](https://github.com/najamelan/TidBits_Javascript). It is modeled after the C++ OOP featureset.
 
