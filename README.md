@@ -1,7 +1,14 @@
-# TidBits Javascript OoJs [![Build Status](https://travis-ci.org/najamelan/TidBits_Javascript.png)](https://travis-ci.org/najamelan/TidBits_Javascript)
+# TidBits Javascript OoJs
 
+<aside class="warning">
 
-**Latest Stable      Version: None yet - please test me!**  
+We can now compile [rust to web assembly](https://youtu.be/TwuIRcpeUWE). As far as I'm concerned JavaScript is now dead, buried and forgotten. I finally woke up from a very long nightmare of being locked into Js by browsers.
+
+Anyway, this never reached stable. I couldn't advise you on using JavaScript, but there's a lot of people that created programming languages for the sole purpose of not having to write Js directly, and if I'm not mistaking, [TypeScript](https://www.typescriptlang.org/) probably can do for you what this library did and surely much more too...
+
+</aside>
+
+**Latest Stable      Version: None yet - please test me!**
 **Latest Development Version: 14.04.29-beta**
 
 This tidbit proposes a way to use a classical OOP paradigm in Javascript. It is part of the [TidBits Javascript Library](https://github.com/najamelan/TidBits_Javascript). It is modeled after the C++ OOP featureset.
@@ -109,7 +116,7 @@ This shows the basic syntax of what a class looks like in OoJs
       -  [Installation](#installation)
       -  [Verify your installation](#verify-your-installation)
       -  [Usage](#usage)
-        
+
          -  [Reserved keywords](#reserved-keywords)
          -  [API](#api)
          -  [Make sure your object is set up](#make-sure-your-object-is-set-up)
@@ -118,10 +125,10 @@ This shows the basic syntax of what a class looks like in OoJs
          -  [Do not call virtual methods from your constructor](#do-not-call-virtual-methods-from-your-constructor)
          -  [Sealing your object is nice, but dangerous](#sealing-your-object-is-nice-but-dangerous)
          -  [Do not try to deep copy objects or extend them](#do-not-try-to-deep-copy-objects-or-extend-them)
-  
+
   -  [Seeing it in action](#seeing-it-in-action)
- 
-  
+
+
 ## Design goals
 
 The goals of OoJs were set as follows (until ES provides decent class support):
@@ -258,19 +265,19 @@ OoJs adds certain properties to your object. They will be non-enumerable, but yo
 
 OoJs provides the following functions:
 
--  **OoJs.setupClass**: need to call this for every class  
-  **returns** `Static`  
+-  **OoJs.setupClass**: need to call this for every class
+  **returns** `Static`
   **parameters**: `namespace, classname [, baseclass name or object]`
 
--  **OoJs.typeOf**: find out the type of an OoJs object (eg. will not return 'object', will return your classname)  
-  **returns** `string` classname  
+-  **OoJs.typeOf**: find out the type of an OoJs object (eg. will not return 'object', will return your classname)
+  **returns** `string` classname
   **parameters**: an object created by a class setup with OoJs
-  
+
 
 -  **Static.getPrivateInstance( interface )**. If you ever need to get the private pointer for an interface of this class. This allows any code within your class scope access to the private part of any object of this class. It also works with objects of subclasses. You will only get access to the private part belonging to your class, eg. you won't be able to access data members or methods added by subclasses, with the exception of virtual methods of your class which have been overridden.
 
 -  **Static.Friends( one or more string classnames )** of classes which are allowed to call `getPrivateInstance` for interfaces of your class.
-  
+
 -  On your private object, if class Circle inherits from Shape, in Circle, **this.Shape** will be an interface to the Shape parent of your circle, which you can use to call Shape versions of public and protected methods. On your public interface there will be a Shape property allowing access to only the public properties.
 
 -  On both your interface and private object, a property **ooID** will exist. This is a unique identifier for this object. The interface will have the same ooID as the private object, should you ever need to verify their connection.
@@ -291,7 +298,7 @@ Don't do something like this:
 
 ```js
 // constructor
-// 
+//
 MyClass( check )
 {
 	if( check )
@@ -321,7 +328,7 @@ A child class instance calls Super() before finishing setting up, and thus a vir
 
 #### Sealing (Object.seal())
 
-It is recommended you seal your public interface before returning it from your constructor. If you do so, the only way to add or remove properties from your object is by changing it's declaration or by subclassing. 
+It is recommended you seal your public interface before returning it from your constructor. If you do so, the only way to add or remove properties from your object is by changing it's declaration or by subclassing.
 
 Sealing your private object currently breaks inheritance (makes your class final), and in any case is not compatible with virtual methods, because they need to be changed when subclasses override them. Use with care.
 
